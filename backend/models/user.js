@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'admin'], 
     default: 'student' 
   },
+  position: {
+    type: String,
+    enum: ['manager', 'butler']
+  },
   urn: { type: String },
   crn: { type: String },
   degree: { type: String },

@@ -18,6 +18,7 @@ function Register() {
     messAccount: "",
     password: "",
     role: "student",
+    position: "manager", // Default for admin
   });
 
   const [errors, setErrors] = useState({});
@@ -35,16 +36,19 @@ function Register() {
     if (!form.lastName) err.lastName = "Last name required";
     if (!form.email) err.email = "Email required";
     else if (!/\S+@\S+\.\S+/.test(form.email)) err.email = "Invalid email format";
-    if (!form.urn) err.urn = "URN required";
-    if (!form.crn) err.crn = "CRN required";
-    if (!form.degree) err.degree = "Degree required";
-    if (!form.department) err.department = "Department required";
-    if (!form.batch) err.batch = "Batch required";
-    if (!form.year) err.year = "Year required";
-    if (!form.hostel) err.hostel = "Hostel required";
-    if (!form.messAccount) err.messAccount = "Mess account required";
     if (!form.password) err.password = "Password required";
     else if (form.password.length < 6) err.password = "Password must be at least 6 characters";
+    
+    if (form.role === "student") {
+      if (!form.urn) err.urn = "URN required";
+      if (!form.crn) err.crn = "CRN required";
+      if (!form.degree) err.degree = "Degree required";
+      if (!form.department) err.department = "Department required";
+      if (!form.batch) err.batch = "Batch required";
+      if (!form.year) err.year = "Year required";
+      if (!form.hostel) err.hostel = "Hostel required";
+      if (!form.messAccount) err.messAccount = "Mess account required";
+    }
 
     setErrors(err);
     return Object.keys(err).length === 0;
@@ -81,10 +85,22 @@ function Register() {
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light py-5">
       <div className="card shadow-lg border-0 rounded-4" style={{ maxWidth: "600px", width: "100%" }}>
         <div className="card-body p-5">
-          <h2 className="text-center mb-4 fw-bold text-primary">Student Registration</h2>
+          <h2 className="text-center mb-4 fw-bold text-primary">Create an Account</h2>
           <p className="text-center text-muted mb-4">Create your account to get started</p>
 
           <form onSubmit={handleSubmit}>
+            
+            {/* Role Toggle */}
+            <div className="mb-4 d-flex justify-content-center gap-4">
+              <div className="form-check form-check-inline">
+                <input className="form-check-input" type="radio" name="role" id="roleStudent" value="student" checked={form.role === "student"} onChange={handleChange} />
+                <label className="form-check-label fw-semibold" htmlFor="roleStudent">Student</label>
+              </div>
+              <div className="form-check form-check-inline">
+                <input className="form-check-input" type="radio" name="role" id="roleAdmin" value="admin" checked={form.role === "admin"} onChange={handleChange} />
+                <label className="form-check-label fw-semibold" htmlFor="roleAdmin">Admin</label>
+              </div>
+            </div>
             
             {/* FIX: Properly closed the Row and Error blocks here */}
             <div className="row">
@@ -131,6 +147,23 @@ function Register() {
               )}
             </div>
 
+            {/* Admin-Specific Fields */}
+            {form.role === "admin" && (
+              <div className="mb-3">
+                <label htmlFor="position" className="form-label fw-semibold">Position</label>
+                <select name="position" id="position" className="form-select form-select-lg" value={form.position} onChange={handleChange}>
+                  <option value="manager">Manager</option>
+                  <option value="butler">Butler</option>
+                </select>
+                {errors.position && (
+                  <small className="text-danger mt-1 d-block">{errors.position}</small>
+                )}
+              </div>
+            )}
+
+            {/* Student-Specific Fields */}
+            {form.role === "student" && (
+            <>
             <div className="row">
               <div className="col-md-6 mb-3">
                 <label htmlFor="urn" className="form-label fw-semibold">URN</label>
@@ -261,6 +294,8 @@ function Register() {
                 )}
               </div>
             </div>
+            </>
+            )}
 
             <div className="mb-3">
               <label htmlFor="messAccount" className="form-label fw-semibold">Mess Account No.</label>
@@ -273,24 +308,6 @@ function Register() {
               />
               {errors.messAccount && (
                 <small className="text-danger mt-1 d-block">{errors.messAccount}</small>
-              )}
-            </div>
-
-            {/* FIX: Added proper label and formatting for the Role selector */}
-            <div className="mb-3">
-               <label htmlFor="role" className="form-label fw-semibold">System Role</label>
-               <select
-                 name="role"
-                 id="role"
-                 className="form-select form-select-lg"
-                 value={form.role}
-                 onChange={handleChange}
-               >
-                 <option value="student">Student</option>
-                 <option value="admin">Admin</option>
-               </select>
-               {errors.role && (
-                 <small className="text-danger mt-1 d-block">{errors.role}</small>
                )}
             </div>
 
