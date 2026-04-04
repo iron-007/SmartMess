@@ -1,8 +1,8 @@
 const Menu = require('../models/Menu');
 const Pricing = require('../models/Pricing');
 const User = require('../models/user');
-// ADD THIS LINE:
 const Leave = require('../models/leave');
+const Transaction = require('../models/transaction'); 
 // --- Menu Controllers ---
 exports.getMenu = async (req, res) => {
   try {
@@ -101,26 +101,28 @@ exports.updatePricing = async (req, res) => {
 // --- Student Management ---
 exports.getAllStudents = async (req, res) => {
   try {
-    // 1. Get current month details
+    // POINT 1: Dynamic Calendar - Get exact days for the current month/year
     const today = new Date();
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth(); // 0-11
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-    // 2. Fetch Pricing (Assuming baseFee is the daily cost)
+    // POINT 2: True Per-Meal Pricing - Ignore baseFee, sum the meals
     const pricingData = await Pricing.findOne();
-    const dailyCost = pricingData ? pricingData.baseFee : 50; // Fallback to 50 if no pricing set
+    // If pricing exists, add B + L + D. Otherwise, fallback to a default (e.g., 40+50+50 = 140)
+    const dailyCost = (pricingData && pricingData.student) 
+      ? (pricingData.student.breakfast + pricingData.student.lunch + pricingData.student.dinner) 
+      : 140; 
 
-    // 3. Fetch all students
+    // Fetch all students
     const students = await User.find({ role: 'student' }).select('-password').sort({ name: 1 });
 
-    // 4. Process each student to generate the Grid Data
+    // Process each student to generate the Grid Data
     const processedStudents = await Promise.all(students.map(async (student) => {
       
-      // Default: All days in the month are True (Mess Open)
       let monthlyStatus = Array(daysInMonth).fill(true);
 
-      // Fetch approved leaves for this student that overlap with the current month
+      // Fetch approved leaves
       const studentLeaves = await Leave.find({
         student: student._id,
         status: 'Approved',
@@ -131,29 +133,41 @@ exports.getAllStudents = async (req, res) => {
         ]
       });
 
-      // Turn days to False (Mess Closed/Red Dot) based on leaves
+      // Turn days to False based on leaves
       studentLeaves.forEach(leave => {
         const start = new Date(leave.startDate);
         const end = new Date(leave.endDate);
 
         for (let day = 1; day <= daysInMonth; day++) {
           const currentDate = new Date(currentYear, currentMonth, day);
-          // Normalize times to midnight for accurate comparison
           currentDate.setHours(0,0,0,0);
           const leaveStart = new Date(start).setHours(0,0,0,0);
           const leaveEnd = new Date(end).setHours(0,0,0,0);
 
           if (currentDate >= leaveStart && currentDate <= leaveEnd) {
-            monthlyStatus[day - 1] = false; // Mess is closed on this day
+            monthlyStatus[day - 1] = false; 
           }
         }
       });
 
-      // Calculate the bill based on how many 'true' days there are
+      // Calculate the base bill (Active Days * Sum of Meals)
       const activeDaysCount = monthlyStatus.filter(day => day === true).length;
-      const currentMonthBill = activeDaysCount * dailyCost;
+      let currentMonthBill = activeDaysCount * dailyCost;
 
-      // Return the exact shape the React Frontend expects
+      // POINT 2 (Continued): Add any "Extra" food or guest transactions from this month
+      const extraTransactions = await Transaction.find({
+        student: student._id,
+        type: 'Extra', // Finding all extra purchases
+        date: {
+          $gte: new Date(currentYear, currentMonth, 1),
+          $lte: new Date(currentYear, currentMonth, daysInMonth, 23, 59, 59)
+        }
+      });
+
+      // Sum up the extra charges and add them to the bill
+      const extraCharges = extraTransactions.reduce((total, trans) => total + trans.amount, 0);
+      currentMonthBill += extraCharges;
+
       return {
         _id: student._id,
         name: student.name,
@@ -169,8 +183,8 @@ exports.getAllStudents = async (req, res) => {
       };
     }));
 
-    // 5. Send the calculated data to the frontend
-    res.status(200).json({ success: true, students: processedStudents });
+    // Send daysInMonth to the frontend so it knows how many columns to draw!
+    res.status(200).json({ success: true, daysInMonth: daysInMonth, students: processedStudents });
 
   } catch (error) {
     console.error('Error fetching students:', error);

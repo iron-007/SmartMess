@@ -23,13 +23,15 @@ const StudentDirectory = () => {
           throw new Error('Failed to fetch student data.');
         }
         const data = await response.json();
-        if (data.success && data.students) {
+        
+        if (data.success) {
           setStudents(data.students);
-          if (data.students.length > 0) {
-            // Dynamically set day headers based on the data from the first student
-            const daysInMonth = data.students[0].monthlyStatus.length;
-            setDayHeaders(Array.from({ length: daysInMonth }, (_, i) => i + 1));
+          
+          // POINT 1: Set the exact number of columns based on the backend calendar
+          if (data.daysInMonth) {
+            setDayHeaders(Array.from({ length: data.daysInMonth }, (_, i) => i + 1));
           }
+          
         } else {
           throw new Error('Failed to fetch student data.');
         }
