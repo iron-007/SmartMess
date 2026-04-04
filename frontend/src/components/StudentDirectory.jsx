@@ -81,6 +81,12 @@ const StudentDirectory = () => {
     boxShadow: '1px 0 0 #eef0f4' 
   };
 
+  const standardHeaderStyle = {
+    backgroundColor: '#16181d',
+    color: '#ffffff',
+    borderBottom: 'none'
+  };
+
   const totalColumns = dayHeaders.length + 7;
 
   return (
@@ -142,15 +148,15 @@ const StudentDirectory = () => {
                   <th className="py-3 px-3 small text-uppercase" style={{ ...stickyHeaderStyle, left: '350px', minWidth: '100px' }}>Year</th>
                   <th className="py-3 px-3 small text-uppercase text-center" style={{ ...stickyHeaderStyle, left: '450px', minWidth: '140px', boxShadow: '2px 0 5px rgba(0,0,0,0.2)' }}>Actions</th>
 
-                  {/* Zone B: The Dynamic Attendance Tracker */}
+                  {/* Zone B: The Dynamic Attendance Tracker (FIXED) */}
                   {dayHeaders.map(day => (
-                    <th key={day} className="py-3 text-center small text-uppercase" style={{ minWidth: '60px' }}>{day}</th>
+                    <th key={day} className="py-3 text-center small text-uppercase" style={{ ...standardHeaderStyle, minWidth: '60px' }}>{day}</th>
                   ))}
 
-                  {/* Zone C: The Financial Totals */}
-                  <th className="py-3 px-4 text-end small text-uppercase" style={{ minWidth: '150px' }}>Current Bill</th>
-                  <th className="py-3 px-4 text-end small text-uppercase" style={{ minWidth: '150px' }}>Previous Dues</th>
-                  <th className="py-3 px-4 text-end small text-uppercase" style={{ minWidth: '160px' }}>Net Payable</th>
+                  {/* Zone C: The Financial Totals (FIXED) */}
+                  <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle, minWidth: '150px' }}>Current Bill</th>
+                  <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle, minWidth: '150px' }}>Previous Dues</th>
+                  <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle, minWidth: '160px' }}>Net Payable</th>
                 </tr>
               </thead>
               
