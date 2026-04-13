@@ -14,4 +14,11 @@ router.put('/pricing', protect, isAdmin, adminController.updatePricing);
 // Student Management Endpoints
 router.get('/students', protect, isAdmin, adminController.getAllStudents);
 
+// --- Billing & Ledger Endpoints ---
+// Secret Manual Trigger for the Midnight Ledger (Admin Only)
+router.post('/trigger-billing', protect, isAdmin, adminController.processDailyBilling);
+
+// TEMPORARY: One-time execution to fix missing past records
+// router.post('/backfill-ledger', protect, isAdmin, adminController.backfillMissingDays);
+
 module.exports = router;

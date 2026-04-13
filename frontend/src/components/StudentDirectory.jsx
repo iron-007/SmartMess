@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import StudentDetailModal from './StudentDetailModal';
 
 const StudentDirectory = () => {
@@ -10,38 +10,40 @@ const StudentDirectory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [dayHeaders, setDayHeaders] = useState(Array.from({ length: 31 }, (_, i) => i + 1));
+  const [isLedgerRunning, setIsLedgerRunning] = useState(false); // NEW STATE
+
+  // 1. Extracted fetch function so we can refresh the grid manually
+  const fetchStudents = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch('http://localhost:5000/api/admin/students', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch student data.');
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        setStudents(data.students);
+        if (data.daysInMonth) {
+          setDayHeaders(Array.from({ length: data.daysInMonth }, (_, i) => i + 1));
+        }
+      } else {
+        throw new Error('Failed to fetch student data.');
+      }
+    } catch (err) {
+      console.error("API Error:", err.message);
+      setError('Failed to load student directory. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch('http://localhost:5000/api/admin/students', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!response.ok) {
-          throw new Error('Failed to fetch student data.');
-        }
-        const data = await response.json();
-        
-        if (data.success) {
-          setStudents(data.students);
-          // Uses the dynamic calendar days sent from our backend!
-          if (data.daysInMonth) {
-            setDayHeaders(Array.from({ length: data.daysInMonth }, (_, i) => i + 1));
-          }
-        } else {
-          throw new Error('Failed to fetch student data.');
-        }
-      } catch (err) {
-        console.error("API Error:", err.message);
-        setError('Failed to load student directory. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStudents();
-  }, []);
+  }, [fetchStudents]);
 
   useEffect(() => {
     if (searchQuery.trim() === '') {
@@ -64,14 +66,41 @@ const StudentDirectory = () => {
     setSelectedStudent(null);
   };
 
+  // 2. NEW: Function to manually trigger the cron job for presentations!
+  const handleRunLedger = async () => {
+    if (window.confirm("Trigger the Midnight Ledger? This will lock in today's meal prices for all active students.")) {
+      setIsLedgerRunning(true);
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch('http://localhost:5000/api/admin/trigger-billing', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+          // Instantly refresh the grid to show the new numbers!
+          await fetchStudents(); 
+          alert(`Success! ${data.message}`);
+        } else {
+          alert(`Error: ${data.message || 'Failed to process ledger'}`);
+        }
+      } catch (err) {
+        console.error("Ledger Error:", err);
+        alert("Failed to connect to the backend ledger system.");
+      } finally {
+        setIsLedgerRunning(false);
+      }
+    }
+  };
+
   // --- Premium Sticky Column Styles ---
-  // Matches the new dark sidebar theme
   const stickyHeaderStyle = {
     position: 'sticky',
     zIndex: 10,
     backgroundColor: '#16181d', 
     color: '#ffffff',
-    boxShadow: '1px 0 0 rgba(255,255,255,0.1)' // Replaces border to prevent overlap glitches
+    boxShadow: '1px 0 0 rgba(255,255,255,0.1)'
   };
 
   const stickyCellStyle = {
@@ -92,12 +121,28 @@ const StudentDirectory = () => {
   return (
     <div className="container-fluid py-2">
       
-      {/* PAGE HEADER */}
-      <div className="mb-4">
-        <h2 className="nav-title fw-bold m-0">
-          <i className="bi bi-people-fill me-2"></i>Student Directory & Billing
-        </h2>
-        <p className="text-muted small mt-1 mb-0">A complete bird's-eye view of student attendance and finances.</p>
+      {/* 3. UPDATED PAGE HEADER WITH RUN LEDGER BUTTON */}
+      <div className="mb-4 d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h2 className="nav-title fw-bold m-0">
+            <i className="bi bi-people-fill me-2"></i>Student Directory & Billing
+          </h2>
+          <p className="text-muted small mt-1 mb-0">A complete bird's-eye view of student attendance and finances.</p>
+        </div>
+        
+        {/* The Panel-Pleaser Button */}
+        <button 
+          onClick={handleRunLedger} 
+          disabled={isLedgerRunning || loading}
+          className="btn text-white fw-bold shadow-sm rounded-pill px-4 py-2"
+          style={{ background: 'linear-gradient(45deg, #FF512F 0%, #DD2476 100%)', border: 'none' }}
+        >
+          {isLedgerRunning ? (
+            <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Auditing...</>
+          ) : (
+            <><i className="bi bi-lightning-charge-fill me-2"></i>Run Midnight Audit</>
+          )}
+        </button>
       </div>
 
       {/* MODERN SEARCH BAR */}
@@ -125,8 +170,7 @@ const StudentDirectory = () => {
       {/* THE DATA GRID CARD */}
       <div className="card shadow-sm border-0 rounded-4 overflow-hidden mb-5">
         
-        {/* Dark Header anchoring the Grid */}
-        <div className="bg-sidebar-dark p-3 px-4 d-flex justify-content-between align-items-center">
+        <div className="bg-sidebar-dark p-3 px-4 d-flex justify-content-between align-items-center" style={{ backgroundColor: '#16181d' }}>
            <h5 className="fw-bold m-0 text-white">
              <i className="bi bi-grid-3x3-gap text-white-50 me-2"></i>Attendance Ledger
            </h5>
@@ -139,21 +183,17 @@ const StudentDirectory = () => {
           <div className="table-responsive">
             <table className="table table-borderless table-hover align-middle mb-0" style={{ minWidth: '3500px' }}>
               
-              {/* Table Header */}
               <thead className="menu-table-header">
                 <tr>
-                  {/* Zone A: Sticky Student Info */}
                   <th className="py-3 px-4 small text-uppercase" style={{ ...stickyHeaderStyle, left: 0, minWidth: '220px' }}>Student Name</th>
                   <th className="py-3 px-3 small text-uppercase" style={{ ...stickyHeaderStyle, left: '220px', minWidth: '130px' }}>Account No.</th>
                   <th className="py-3 px-3 small text-uppercase" style={{ ...stickyHeaderStyle, left: '350px', minWidth: '100px' }}>Year</th>
                   <th className="py-3 px-3 small text-uppercase text-center" style={{ ...stickyHeaderStyle, left: '450px', minWidth: '140px', boxShadow: '2px 0 5px rgba(0,0,0,0.2)' }}>Actions</th>
 
-                  {/* Zone B: The Dynamic Attendance Tracker (FIXED) */}
                   {dayHeaders.map(day => (
                     <th key={day} className="py-3 text-center small text-uppercase" style={{ ...standardHeaderStyle, minWidth: '60px' }}>{day}</th>
                   ))}
 
-                  {/* Zone C: The Financial Totals (FIXED) */}
                   <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle, minWidth: '150px' }}>Current Bill</th>
                   <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle, minWidth: '150px' }}>Previous Dues</th>
                   <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle, minWidth: '160px' }}>Net Payable</th>
@@ -184,7 +224,6 @@ const StudentDirectory = () => {
                     return (
                       <tr key={student._id} className={index !== filteredStudents.length - 1 ? "border-bottom" : ""}>
                         
-                        {/* Zone A: Sticky Student Info */}
                         <td className="fw-bold text-dark py-3 px-4" style={{ ...stickyCellStyle, left: 0 }}>
                           <div className="d-flex align-items-center">
                             <div className="bg-light rounded-circle d-flex justify-content-center align-items-center me-3 border" style={{width: '35px', height: '35px'}}>
@@ -202,13 +241,29 @@ const StudentDirectory = () => {
                         </td>
 
                         {/* Zone B: The Day Attendance Tracker */}
-                        {student.monthlyStatus.map((isPresent, dayIndex) => (
-                          <td key={dayIndex} className="text-center align-middle py-3">
-                            <i className={`bi bi-circle-fill ${isPresent ? 'text-success' : 'text-danger opacity-50'} small`}></i>
-                          </td>
-                        ))}
+                        {student.monthlyStatus.map((isPresent, dayIndex) => {
+                          const dayNumber = dayIndex + 1;
+                          const currentDay = new Date().getDate(); // Gets today's date (1-31)
+                          const isFuture = dayNumber > currentDay;
 
-                        {/* Zone C: The Financial Totals */}
+                          return (
+                            <td key={dayIndex} className="text-center align-middle py-3">
+                              {isFuture ? (
+                                // Show ND (No Data) for future days
+                                <span className="text-muted fw-bold" style={{ fontSize: '0.65rem', opacity: 0.4 }} title="Future Date: No Data">
+                                  ND
+                                </span>
+                              ) : isPresent ? (
+                                // Show Green Dot for Past/Present days where account is Open
+                                <i className="bi bi-circle-fill text-success small" title="Account Open"></i>
+                              ) : (
+                                // Show Red Dot for Past/Present days where account is Closed (On Leave)
+                                <i className="bi bi-circle-fill text-danger small" title="Account Closed (On Leave)"></i>
+                              )}
+                            </td>
+                          );
+                        })}
+
                         <td className="text-end py-3 px-4 text-secondary fw-medium">
                           ₹{student.currentMonthBill.toLocaleString()}
                         </td>

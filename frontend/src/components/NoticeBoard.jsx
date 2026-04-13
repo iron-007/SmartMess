@@ -80,9 +80,7 @@ const NoticeBoard = () => {
     if (attachment) {
       formData.append("attachment", attachment);
     }
-    if (validUntil) {
-      formData.append("validUntil", validUntil);
-    }
+    formData.append("validUntil", validUntil);
 
     try {
       const token = localStorage.getItem("token");
@@ -108,12 +106,19 @@ const NoticeBoard = () => {
         }
         resetForm();
       } else {
-        const errData = await response.json();
-        alert(errData.message || "Failed to save notice");
+        let errMessage = "Failed to save notice";
+        try {
+          const errData = await response.json();
+          errMessage = errData.message || errMessage;
+        } catch (parseError) {
+          // Handle cases where the backend returns an HTML error page (like 404 or 500)
+          errMessage = `Server error (${response.status}): The endpoint might be missing or crashed.`;
+        }
+        alert(errMessage);
       }
     } catch (error) {
       console.error("Error saving notice:", error);
-      alert("Network error occurred.");
+      alert(`Error: ${error.message === "Failed to fetch" ? "Network error (CORS or server restarted)." : error.message}`);
     }
   };
 
@@ -310,7 +315,7 @@ const NoticeBoard = () => {
                         
                         {/* Action Buttons */}
                         <div className="d-flex gap-2" onClick={(e) => e.stopPropagation()}>
-                          {canEdit(notice.createdAt) && (
+                          {canEdit(notice.createdAt || notice.date) && (
                             <button className="btn btn-sm btn-light text-primary border rounded-pill px-3 fw-medium hover-shadow" onClick={() => handleEdit(notice)}>
                               <i className="bi bi-pencil-square me-1"></i> Edit
                             </button>

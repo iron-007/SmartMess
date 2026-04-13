@@ -76,7 +76,7 @@ exports.updateNotice = async (req, res) => {
 
     // Enforce backend 5 minute edit window validation 
     const now = new Date();
-    const createdAt = new Date(notice.createdAt);
+    const createdAt = new Date(notice.createdAt || notice.date);
     if ((now - createdAt) > EDIT_WINDOW_MS) {
       return res.status(403).json({ message: "Edit window (5 minutes) has expired." });
     }
@@ -84,7 +84,9 @@ exports.updateNotice = async (req, res) => {
     notice.title = title;
     notice.content = content;
     notice.priority = priority;
-    if (validUntil !== undefined) notice.validUntil = validUntil || null;
+    if (validUntil !== undefined) {
+      notice.validUntil = (validUntil === "" || validUntil === "null") ? null : validUntil;
+    }
 
     if (req.file) {
       if (notice.attachmentUrl) {
