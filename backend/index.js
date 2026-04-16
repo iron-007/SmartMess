@@ -38,15 +38,16 @@ app.get('/', (req, res) => {
 });
 
 // --- AUTOMATION: The Midnight Ledger ---
-// Schedule: '59 23 * * *' means 11:59 PM, every single day.
 cron.schedule('59 23 * * *', async () => {
-  console.log('--- [SYSTEM] Triggering Automated Midnight Ledger ---');
+  console.log('--- [SYSTEM] Triggering Automated Midnight Ledger (IST) ---');
   try {
-    // We run the function directly without passing a request/response 
     await adminController.processDailyBilling(); 
   } catch (err) {
     console.error('--- [SYSTEM] Midnight Ledger Automation Failed:', err);
   }
+}, {
+  scheduled: true,
+  timezone: "Asia/Kolkata" // 🔒 Locks the trigger exactly to Indian Standard Time
 });
 
 const PORT = process.env.PORT || 5000;
