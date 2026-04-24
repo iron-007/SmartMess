@@ -43,9 +43,9 @@ const ButlerLayout = () => {
       {/* --- THE MAIN CONTENT AREA --- */}
       <div className="admin-main-wrapper">
         <header className="admin-top-nav d-flex justify-content-between align-items-center px-4">
-          <div>
+          <div className="d-flex flex-column">
             <h4 className="m-0 fs-5 fw-bold nav-title">Butler Dashboard</h4>
-            <small className="text-muted fw-medium">Managing mess status & approvals</small>
+            <small className="text-muted fw-medium mt-1">Managing mess status & approvals</small>
           </div>
           
           <div className="d-flex align-items-center gap-4">

@@ -62,10 +62,10 @@ const AdminLayout = () => {
         {/* The Top Navbar (Sticky & Elegant) */}
        {/* The Top Navbar */}
         <header className="admin-top-nav d-flex justify-content-between align-items-center px-4">
-          <div>
+          <div className="d-flex flex-column">
             {/* Added the new nav-title class here */}
             <h4 className="m-0 fs-5 fw-bold nav-title">Admin Dashboard</h4>
-            <small className="text-muted fw-medium">Manage your mess operations efficiently</small>
+            <small className="text-muted fw-medium mt-1">Manage your mess operations efficiently</small>
           </div>
           
           <div className="d-flex align-items-center gap-4">
