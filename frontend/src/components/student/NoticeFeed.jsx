@@ -13,7 +13,7 @@ const NoticeFeed = ({ notices }) => {
             <p className="mb-0">No active notices.</p>
           </div>
         ) : (
-          <div className="overflow-auto pe-2" style={{ maxHeight: '400px' }}>
+          <div className="overflow-auto pe-2" style={{ maxHeight: 'calc(100vh - 250px)' }}>
             {notices.map((notice, index) => (
               <div key={index} className="mb-3 p-3 rounded-4 bg-light border border-light transition-all hover-lift">
                 <div className="d-flex justify-content-between align-items-start mb-2">

@@ -2,7 +2,7 @@ import React from 'react';
 
 const MyProfile = ({ user }) => {
   if (!user) return (
-    <div className="glass-panel shadow-sm border-0 mb-4 animate-pulse">
+    <div className="glass-panel shadow-sm border-0 mb-4 animate-pulse-slow">
       <div className="card-body p-5 text-center">
         <div className="spinner-border text-primary" role="status"></div>
       </div>
@@ -21,50 +21,55 @@ const MyProfile = ({ user }) => {
   ];
 
   return (
-    <div className="glass-panel shadow-md border-0 mb-4 overflow-hidden fade-in h-100" style={{ borderRadius: '16px' }}>
-      <div className="card-header border-0 p-4" style={{ background: 'var(--sidebar-dark)', color: 'white' }}>
-        <div className="d-flex align-items-center">
-          <div className="bg-white bg-opacity-10 rounded-circle p-3 me-3 d-flex align-items-center justify-content-center border border-white border-opacity-10 shadow-sm transition-all hover-lift" style={{ width: '72px', height: '72px' }}>
-            <i className="bi bi-person-bounding-box fs-1 text-white"></i>
+    <div className="glass-panel shadow-md border-0 mb-4 fade-in h-100 d-flex flex-column position-relative overflow-hidden" style={{ borderRadius: '20px' }}>
+      {/* Decorative Background Glow */}
+      <div className="position-absolute top-0 start-0 w-100 h-100 opacity-25" style={{ background: 'radial-gradient(circle at top right, rgba(255,81,47,0.15) 0%, transparent 40%), radial-gradient(circle at bottom left, rgba(221,36,118,0.1) 0%, transparent 40%)', zIndex: 0, pointerEvents: 'none' }}></div>
+      
+      <div className="card-body p-4 p-lg-5 d-flex flex-column z-index-1">
+        {/* Profile Hero Section */}
+        <div className="d-flex align-items-center mb-5 pb-4 border-bottom border-light border-opacity-10 position-relative flex-wrap gap-4">
+          <div className="position-relative">
+             <div className="rounded-circle p-1 shadow-sm" style={{ background: 'var(--brand-gradient)' }}>
+               <div className="bg-white rounded-circle d-flex align-items-center justify-content-center" style={{ width: '90px', height: '90px' }}>
+                 <i className="bi bi-person-bounding-box fs-1" style={{ background: 'var(--brand-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}></i>
+               </div>
+             </div>
+             <div className="position-absolute bottom-0 end-0 bg-success border border-white border-2 rounded-circle shadow-sm" style={{ width: '22px', height: '22px' }} title="Verified User"></div>
           </div>
           <div>
-            <h3 className="mb-1 fw-bold text-white" style={{ fontFamily: 'var(--font-heading)' }}>{user.name}</h3>
+            <h2 className="mb-1 fw-bold text-dark" style={{ letterSpacing: '-0.5px' }}>{user.name}</h2>
             <div className="d-flex flex-wrap gap-2 align-items-center mt-2">
-              <span className="badge text-white small fw-bold px-3 py-1 rounded-pill shadow-sm" style={{ background: 'var(--brand-gradient)' }}>
+              <span className="badge rounded-pill shadow-sm py-2 px-3 fw-bold" style={{ background: 'var(--brand-gradient)', color: 'white', letterSpacing: '1px' }}>
                 {user.role?.toUpperCase() || 'STUDENT'}
               </span>
-              <span className="text-white-50 small bg-white bg-opacity-10 px-2 py-1 rounded-pill"><i className="bi bi-envelope-fill me-1"></i> {user.email}</span>
+              <span className="text-muted small fw-medium d-flex align-items-center bg-white px-3 py-1 rounded-pill border shadow-sm">
+                <i className="bi bi-envelope-at-fill me-2 text-primary opacity-75"></i> {user.email}
+              </span>
             </div>
           </div>
         </div>
-      </div>
-      
-      <div className="card-body p-0 bg-white">
-        <div className="p-3 px-4 bg-light border-bottom d-flex align-items-center justify-content-between">
-          <span className="text-muted small fw-bold text-uppercase ls-1"><i className="bi bi-person-vcard me-2"></i>Profile Details</span>
-          <i className="bi bi-shield-fill-check text-success fs-5" title="Verified Identity"></i>
-        </div>
-        
-        <div className="row g-0">
+
+        {/* Profile Details Grid */}
+        <div className="row g-4 flex-grow-1">
           {profileFields.map((field, index) => (
-            <div key={index} className={`col-md-6 ${index % 2 === 0 ? 'border-end' : ''} border-bottom border-light`}>
-              <div className="p-3 px-4 transition-all hover-bg-light" style={{ cursor: 'default' }}>
-                <p className="text-muted small mb-1 d-flex align-items-center fw-medium">
-                  <i className={`bi ${field.icon} me-2 fs-6 opacity-75`} style={{ color: 'var(--brand-primary)' }}></i>
-                  {field.label}
-                </p>
-                <h6 className="mb-0 fw-bold text-dark ps-4" style={{ color: '#1f2937 !important' }}>
-                  {field.value}
-                </h6>
+            <div key={index} className="col-sm-6 col-md-6 col-lg-6">
+              <div className="p-3 bg-white rounded-4 shadow-sm border border-light h-100 transition-all hover-lift-sm d-flex align-items-center">
+                <div className="rounded-circle bg-light d-flex align-items-center justify-content-center me-3 shadow-sm" style={{ width: '48px', height: '48px' }}>
+                  <i className={`bi ${field.icon} fs-5`} style={{ color: 'var(--brand-primary)' }}></i>
+                </div>
+                <div>
+                  <p className="text-muted small mb-0 fw-bold text-uppercase ls-1" style={{ fontSize: '0.7rem' }}>{field.label}</p>
+                  <h6 className="mb-0 fw-bold text-dark mt-1" style={{ fontSize: '1rem' }}>{field.value}</h6>
+                </div>
               </div>
             </div>
           ))}
         </div>
-
-        <div className="p-3 text-center bg-light">
-           <small className="text-muted fw-medium">
-             <i className="bi bi-info-circle-fill me-1" style={{ color: 'var(--brand-secondary)' }}></i>
-             Identity verified by SmartMess System
+        
+        <div className="mt-5 text-center">
+           <small className="text-muted fw-medium bg-light px-4 py-2 rounded-pill border">
+             <i className="bi bi-shield-fill-check me-2" style={{ color: 'var(--brand-secondary)' }}></i>
+             Identity secured & verified by SmartMess System
            </small>
         </div>
       </div>
