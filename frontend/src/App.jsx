@@ -8,7 +8,7 @@ import AdminLayout from "./components/AdminLayout";
 import MenuManager from "./components/MenuManager";
 import DynamicPricing from "./components/DynamicPricing";
 import NoticeBoard from "./components/NoticeBoard";
-import StudentDirectory from "./components/StudentDirectory"; 
+import StudentDirectory from "./components/StudentDirectory";
 import AccountApproval from "./components/AccountApproval";
 import ProtectedRoute from "./components/ProtectedRoute";
 import StudentLayout from "./components/StudentLayout";
@@ -28,7 +28,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
+
         {/* Butler Protected Routes (Account Approvals shifted here) */}
         <Route path="/butler" element={<ButlerProtectedRoute />}>
           <Route element={<ButlerLayout />}>
