@@ -192,3 +192,54 @@ tr:nth-last-child(-n+2) .hover-details {
   top: auto;
   bottom: 100%;
 }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    width: 60px;
+  }
+  
+  .admin-sidebar:hover {
+    width: 220px;
+  }
+  
+  .admin-main-wrapper {
+    margin-left: 60px;
+  }
+  
+  .sidebar-brand {
+    padding: 0 10px;
+  }
+  
+  .sidebar-brand i {
+    min-width: 30px;
+    margin-left: 4px;
+  }
+  
+  .sidebar-link {
+    margin: 8px 6px;
+    padding: 10px 14px;
+  }
+  
+  .admin-top-nav {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
+  
+  .nav-title {
+    font-size: 1.1rem !important;
+  }
+  
+  .admin-top-nav small.text-muted {
+    display: none !important;
+  }
+  
+  .btn-logout {
+    padding: 0.4rem 1rem !important;
+    font-size: 0.85rem;
+  }
+  
+  .btn-logout span, .btn-logout i {
+    font-size: 0.85rem;
+  }
+}
