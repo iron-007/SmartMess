@@ -18,6 +18,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import ButlerProtectedRoute from "./components/ButlerProtectedRoute";
 import ButlerLayout from "./components/ButlerLayout";
 import ButlerDashboard from "./pages/ButlerDashboard";
+import ButlerExtras from "./pages/ButlerExtras";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route element={<ButlerLayout />}>
             <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<ButlerDashboard />} />
+            <Route path="extras" element={<ButlerExtras />} />
             <Route path="notices" element={<NoticeBoard />} />
           </Route>
         </Route>

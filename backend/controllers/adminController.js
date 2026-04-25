@@ -31,8 +31,8 @@ exports.processDailyBilling = async (req, res) => {
 
     for (const student of students) {
       // INSTANT EFFECT: Respect pending requests immediately for billing
-      const effectiveStatus = student.messStatusRequest === 'Request_Open' ? 'Open' : 
-                              (student.messStatusRequest === 'Request_Close' ? 'Closed' : student.messStatus);
+      const effectiveStatus = student.messStatusRequest === 'Request_Open' ? 'Open' :
+        (student.messStatusRequest === 'Request_Close' ? 'Closed' : student.messStatus);
 
       if (effectiveStatus === 'Closed') {
         continue;
@@ -50,11 +50,12 @@ exports.processDailyBilling = async (req, res) => {
       }
 
       // Check if student is on approved leave today
+      // Use endOf('day') and startOf('day') to handle potential UTC/IST offset mismatches
       const onLeave = await Leave.findOne({
         student: student._id,
         status: "Approved",
-        startDate: { $lte: today },
-        endDate: { $gte: today },
+        startDate: { $lte: moment(today).endOf('day').toDate() },
+        endDate: { $gte: moment(today).startOf('day').toDate() },
       });
 
       // If NOT on leave and NOT already billed, prepare the Transaction entry
@@ -144,106 +145,118 @@ exports.processMonthlyFine = async () => {
   }
 };
 
-// --- Menu Controllers ---
+// --- Admin Helper: Process Batch Ledger for missing days ---
+exports.backfillMissingDays = async (req, res) => {
+  try {
+    const { startDate, endDate } = req.body; // Expected ISO strings
+    if (!startDate || !endDate) return res.status(400).json({ message: "Dates required" });
+
+    const start = moment(startDate).startOf('day');
+    const end = moment(endDate).startOf('day');
+
+    const activePricing = await Pricing.findOne();
+    const dailyMealCost = activePricing.student.breakfast + activePricing.student.lunch + activePricing.student.dinner;
+    const students = await User.find({ role: "student" });
+
+    let totalCreated = 0;
+
+    for (let m = moment(start); m.isSameOrBefore(end); m.add(1, 'days')) {
+      const targetDate = m.toDate();
+      const ledgerEntries = [];
+
+      for (const student of students) {
+        // Status check
+        const effectiveStatus = student.messStatus;
+        if (effectiveStatus === 'Closed') continue;
+
+        // Billed check
+        const alreadyBilled = await Transaction.findOne({
+          student: student._id,
+          date: targetDate,
+          type: "DailyMeals"
+        });
+        if (alreadyBilled) continue;
+
+        // Leave check
+        const onLeave = await Leave.findOne({
+          student: student._id,
+          status: "Approved",
+          startDate: { $lte: moment(targetDate).endOf('day').toDate() },
+          endDate: { $gte: moment(targetDate).startOf('day').toDate() }
+        });
+
+        if (!onLeave) {
+          ledgerEntries.push({
+            student: student._id,
+            date: targetDate,
+            type: "DailyMeals",
+            description: `Backfilled Mess Charge: ${targetDate.toDateString()}`,
+            amount: dailyMealCost,
+            mealType: "N/A"
+          });
+        }
+      }
+
+      if (ledgerEntries.length > 0) {
+        await Transaction.insertMany(ledgerEntries);
+        totalCreated += ledgerEntries.length;
+      }
+    }
+
+    res.status(200).json({ success: true, message: `Backfilled ${totalCreated} records.` });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// --- CRUD Endpoints ---
+
 exports.getMenu = async (req, res) => {
   try {
-    let menuData = await Menu.findOne();
-    if (!menuData) {
-      return res.status(200).json({});
-    }
-    res.status(200).json(menuData);
-  } catch (error) {
-    console.error("Error fetching menu:", error);
-    res.status(500).json({ message: "Server error fetching menu" });
+    const menu = await Menu.findOne();
+    res.json(menu || {});
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 exports.updateMenu = async (req, res) => {
   try {
-    const { menu, timings, status } = req.body;
-    let menuData = await Menu.findOne();
-
-    if (menuData) {
-      menuData.menu = menu;
-      menuData.timings = timings;
-      menuData.status = status;
-      await menuData.save();
-    } else {
-      menuData = new Menu({ menu, timings, status });
-      await menuData.save();
-    }
-
-    res.status(200).json({ message: "Menu updated successfully", menuData });
-  } catch (error) {
-    console.error("Error updating menu:", error);
-    res.status(500).json({ message: "Server error updating menu" });
+    const { status, timings, menu } = req.body;
+    // We maintain a single menu document for the entire week
+    const updatedMenu = await Menu.findOneAndUpdate(
+      {},
+      { status, timings, menu },
+      { returnDocument: 'after', upsert: true, setDefaultsOnInsert: true }
+    );
+    res.json(updatedMenu);
+  } catch (err) {
+    console.error("Update Menu Error:", err);
+    res.status(400).json({ message: err.message });
   }
 };
 
-// --- Pricing Controllers ---
 exports.getPricing = async (req, res) => {
   try {
-    let pricingData = await Pricing.findOne();
-    if (!pricingData) {
-      return res.status(200).json({});
-    }
-    res.status(200).json({
-      pricing: {
-        baseFee: pricingData.baseFee,
-        student: pricingData.student,
-        guest: pricingData.guest,
-        rules: pricingData.rules,
-      },
-      auditLog: pricingData.auditLog,
-    });
-  } catch (error) {
-    console.error("Error fetching pricing:", error);
-    res.status(500).json({ message: "Server error fetching pricing" });
+    const pricing = await Pricing.findOne();
+    res.json(pricing);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
 exports.updatePricing = async (req, res) => {
   try {
-    const pricingPayload = req.body;
-    let pricingData = await Pricing.findOne();
-
-    const newLogEntry = {
-      date: new Date().toISOString().split("T")[0],
-      action: "Updated pricing and rules",
-      admin: req.user ? req.user.name : "System Admin",
-    };
-
-    if (pricingData) {
-      pricingData.baseFee = pricingPayload.baseFee;
-      pricingData.student = pricingPayload.student;
-      pricingData.guest = pricingPayload.guest;
-      pricingData.rules = pricingPayload.rules;
-
-      pricingData.auditLog.unshift(newLogEntry);
-      if (pricingData.auditLog.length > 20) pricingData.auditLog.pop();
-
-      await pricingData.save();
-    } else {
-      pricingData = new Pricing({
-        ...pricingPayload,
-        auditLog: [newLogEntry],
-      });
-      await pricingData.save();
-    }
-
-    res
-      .status(200)
-      .json({
-        message: "Pricing updated successfully",
-        auditLog: pricingData.auditLog,
-      });
-  } catch (error) {
-    console.error("Error updating pricing:", error);
-    res.status(500).json({ message: "Server error updating pricing" });
+    const pricing = await Pricing.findOneAndUpdate({}, req.body, {
+      returnDocument: 'after',
+      upsert: true,
+    });
+    res.json(pricing);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };
 
-// --- Student Management ---
 exports.getAllStudents = async (req, res) => {
   try {
     // Lock month boundaries to IST
@@ -305,12 +318,7 @@ exports.getAllStudents = async (req, res) => {
         const end = new Date(leave.endDate);
 
         for (let day = 1; day <= daysInMonth; day++) {
-          const currentDate = new Date(currentYear, currentMonth, day).setHours(
-            0,
-            0,
-            0,
-            0,
-          );
+          const currentDate = new Date(currentYear, currentMonth, day).setHours(0, 0, 0, 0);
           const leaveStart = new Date(start).setHours(0, 0, 0, 0);
           const leaveEnd = new Date(end).setHours(0, 0, 0, 0);
 
@@ -322,30 +330,26 @@ exports.getAllStudents = async (req, res) => {
 
       // 2. Process Transactions from memory
       const monthlyTransactions = txByStudent[studentIdStr] || [];
-      let currentMonthBill = 0;
-      let fineAmount = 0;
+      let dailyMealsTotal = 0;
       let totalExtras = 0;
-      let dailyExtras = Array(daysInMonth).fill(0);
+      let totalGuestAmount = 0;
+      let fineAmount = 0;
+      let paymentsAndRebates = 0;
 
       monthlyTransactions.forEach((trans) => {
-        if (["DailyMeals", "Extra", "Guest", "Fine"].includes(trans.type)) {
-          currentMonthBill += trans.amount;
-        } else if (["Rebate", "Payment"].includes(trans.type)) {
-          currentMonthBill -= trans.amount;
-        }
+        const amount = trans.amount || 0;
+        if (trans.type === 'DailyMeals') dailyMealsTotal += amount;
+        if (trans.type === 'Extra') totalExtras += amount;
+        if (trans.type === 'Guest') totalGuestAmount += amount;
+        if (trans.type === 'Fine') fineAmount += amount;
 
-        if (trans.type === 'Fine') {
-          fineAmount += trans.amount;
-        }
-
-        if (trans.type === 'Extra') {
-          totalExtras += trans.amount;
-          const dayIndex = moment(trans.date).date() - 1;
-          if (dayIndex >= 0 && dayIndex < daysInMonth) {
-            dailyExtras[dayIndex] += trans.amount;
-          }
+        if (["Rebate", "Payment"].includes(trans.type)) {
+          paymentsAndRebates += amount;
         }
       });
+
+      // currentMonthBill is the total of all charges minus payments/rebates for this month
+      const currentMonthBill = (dailyMealsTotal + totalExtras + totalGuestAmount + fineAmount) - paymentsAndRebates;
 
       return {
         _id: student._id,
@@ -357,285 +361,171 @@ exports.getAllStudents = async (req, res) => {
         department: student.department || "N/A",
         phone: student.phone || "N/A",
         monthlyStatus: monthlyStatus,
-        currentMonthBill: currentMonthBill,
-        previousDues: student.previousDues || 0,
-        fineAmount: fineAmount,
+        dailyMealsTotal: dailyMealsTotal,
         totalExtras: totalExtras,
-        dailyExtras: dailyExtras
+        totalGuestAmount: totalGuestAmount,
+        fineAmount: fineAmount,
+        currentMonthBill: currentMonthBill,
+        previousDues: student.previousDues || 0
       };
     });
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        daysInMonth: daysInMonth,
-        students: processedStudents,
-      });
-  } catch (error) {
-    console.error("Error fetching students:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server error fetching students" });
+    res.json({
+      success: true,
+      students: processedStudents,
+    });
+  } catch (err) {
+    console.error("Fetch Students Error:", err);
+    res.status(500).json({ message: "Server error fetching student data" });
   }
 };
 
-// @desc    Update student details (Manual adjustment)
-// @route   PUT /api/admin/students/:id
-// @access  Admin
 exports.updateStudent = async (req, res) => {
   try {
-    const studentId = req.params.id;
-    const updates = req.body;
-    
-    const student = await User.findById(studentId);
-    if (!student) {
-      return res.status(404).json({ success: false, message: "Student not found" });
-    }
-
-    // Allowed fields for update
-    const allowedFields = ['name', 'previousDues', 'year', 'urn', 'crn', 'department', 'phone', 'messAccount'];
-    
-    Object.keys(updates).forEach(key => {
-      if (allowedFields.includes(key)) {
-        student[key] = updates[key];
-      }
+    const student = await User.findByIdAndUpdate(req.params.id, req.body, {
+      returnDocument: 'after',
     });
-
-    await student.save();
-    res.status(200).json({ success: true, message: "Student updated successfully", student });
-  } catch (error) {
-    console.error("Error updating student:", error);
-    res.status(500).json({ success: false, message: "Server error updating student" });
-  }
-};
-// // --- TEMPORARY BACKFILL SCRIPT ---
-// // Run this ONCE to fill in missing ledger data for the current month
-// exports.backfillMissingDays = async (req, res) => {
-//     try {
-//         const today = new Date();
-//         const currentYear = today.getFullYear();
-//         const currentMonth = today.getMonth();
-//         const yesterday = today.getDate() - 1; // Stops at yesterday so it doesn't double-charge today
-
-//         // 1. Get pricing
-//         const activePricing = await Pricing.findOne();
-//         const dailyMealCost = activePricing.student.breakfast + activePricing.student.lunch + activePricing.student.dinner;
-
-//         const students = await User.find({ role: 'student' });
-//         let entriesAdded = 0;
-
-//         // 2. Loop through every day of the month from Day 1 up to Yesterday
-//         for (let day = 1; day <= yesterday; day++) {
-//             const targetDate = new Date(currentYear, currentMonth, day);
-//             targetDate.setHours(0,0,0,0); // Normalize to midnight
-
-//             // 3. Loop through every student for that day
-//             for (const student of students) {
-
-//                 // SAFETY CHECK: Did we already bill them for this exact day?
-//                 const existingTx = await Transaction.findOne({
-//                     student: student._id,
-//                     date: targetDate,
-//                     type: 'DailyMeals'
-//                 });
-
-//                 if (existingTx) continue; // If yes, skip them. No double charging!
-
-//                 // Check if they were on leave on this specific past day
-//                 const onLeave = await Leave.findOne({
-//                     student: student._id,
-//                     status: 'Approved',
-//                     startDate: { $lte: targetDate },
-//                     endDate: { $gte: targetDate }
-//                 });
-
-//                 // If not on leave, generate the missing receipt!
-//                 if (!onLeave) {
-//                     await Transaction.create({
-//                         student: student._id,
-//                         date: targetDate,
-//                         type: 'DailyMeals',
-//                         description: `Historical Backfill (B+L+D): ${targetDate.toDateString()}`,
-//                         amount: dailyMealCost,
-//                         mealType: 'N/A'
-//                     });
-//                     entriesAdded++;
-//                 }
-//             }
-//         }
-
-//         res.status(200).json({
-//             success: true,
-//             message: `Historical Backfill complete! Added ${entriesAdded} missing transactions from Day 1 to Day ${yesterday}.`
-//         });
-
-//     } catch (error) {
-//         console.error("Backfill Error:", error);
-//         res.status(500).json({ success: false, message: "Server error during backfill." });
-//     }
-// };
-
-// --- Account Approvals ---
-exports.getPendingApprovals = async (req, res) => {
-  try {
-    // Fetch students who have requested to open or close their mess account
-    const pendingUsers = await User.find({ messStatusRequest: { $ne: 'None' } }).select('-password').sort({ _id: -1 });
-    res.status(200).json({ success: true, users: pendingUsers });
-  } catch (error) {
-    console.error("Error fetching pending approvals:", error);
-    res.status(500).json({ success: false, message: "Server error fetching pending approvals" });
+    if (!student) return res.status(404).json({ message: "Student not found" });
+    res.json({ success: true, student });
+  } catch (err) {
+    res.status(400).json({ message: err.message });
   }
 };
 
-exports.approveAccount = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const user = await User.findById(userId);
-    
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+// --- Attendance & Consumption History ---
 
-    // Apply the requested status
-    let actionLog = '';
-    if (user.messStatusRequest === 'Request_Open') {
-      user.messStatus = 'Open';
-      actionLog = 'Admin Approved: Account Opened';
-    } else if (user.messStatusRequest === 'Request_Close') {
-      user.messStatus = 'Closed';
-      actionLog = 'Admin Approved: Account Closed';
-    }
-    
-    user.messStatusLog.push({
-      action: actionLog,
-      remark: `Status officially changed to ${user.messStatus}`
-    });
-
-    user.messStatusRequest = 'None'; // Clear the request
-    await user.save();
-
-    res.status(200).json({ success: true, message: "Account approved successfully", user });
-  } catch (error) {
-    console.error("Error approving account:", error);
-    res.status(500).json({ success: false, message: "Server error approving account" });
-  }
-};
-
-// @desc    Get detailed attendance history for a student
-// @route   GET /api/admin/students/:id/attendance
-// @access  Admin
 exports.getStudentAttendance = async (req, res) => {
   try {
-    const studentId = req.params.id;
-    const attendance = await Attendance.find({ student: studentId })
-      .sort({ date: -1, timestamp: -1 })
+    const attendance = await Attendance.find({ student: req.params.id })
+      .sort({ timestamp: -1 })
       .limit(50);
-    
-    res.status(200).json({ success: true, attendance });
-  } catch (error) {
-    console.error("Error fetching student attendance:", error);
-    res.status(500).json({ success: false, message: "Server error fetching attendance" });
+    res.json({ success: true, attendance });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-exports.rejectAccount = async (req, res) => {
+exports.getStudentConsumption = async (req, res) => {
   try {
-    const userId = req.params.id;
-    const user = await User.findById(userId);
-    
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+    const studentId = req.params.id;
+    const now = moment.tz("Asia/Kolkata");
+    const year = now.year();
+    const month = now.month(); // 0-indexed
+    const daysInMonth = now.daysInMonth();
 
-    // Rejecting means we just clear the request without changing the actual status
-    user.messStatusLog.push({
-      action: `Admin Rejected: ${user.messStatusRequest === 'Request_Open' ? 'Open Request' : 'Close Request'}`,
-      remark: `Account remains ${user.messStatus}`
+    const startOfMonth = now.clone().startOf("month").toDate();
+    const endOfMonth = now.clone().endOf("month").toDate();
+
+    // Fetch Transactions
+    const transactions = await Transaction.find({
+      student: studentId,
+      date: { $gte: startOfMonth, $lte: endOfMonth }
     });
 
-    user.messStatusRequest = 'None';
-    await user.save();
+    // Fetch Approved Leaves
+    const leaves = await Leave.find({
+      student: studentId,
+      status: 'Approved',
+      $or: [
+        { startDate: { $lte: endOfMonth }, endDate: { $gte: startOfMonth } }
+      ]
+    });
 
-    res.status(200).json({ success: true, message: "Account request rejected" });
-  } catch (error) {
-    console.error("Error rejecting account:", error);
-    res.status(500).json({ success: false, message: "Server error rejecting account" });
-  }
-};
+    // Fetch Approved Mess Requests
+    const messRequests = await MessRequest.find({
+      student: studentId,
+      status: 'APPROVED',
+      date: { $gte: startOfMonth, $lte: endOfMonth }
+    });
 
-// @desc    Get all pending daily status requests
-// @route   GET /api/admin/daily-requests
-// @access  Admin
-exports.getDailyStatusRequests = async (req, res) => {
-  try {
-    const requests = await MessRequest.find({ status: 'PENDING' })
-      .populate('student', 'name messAccount')
-      .sort({ date: 1 });
-    
-    res.status(200).json({ success: true, requests });
-  } catch (error) {
-    console.error("Error fetching daily requests:", error);
-    res.status(500).json({ success: false, message: "Server error fetching requests" });
-  }
-};
+    const student = await User.findById(studentId);
+    if (!student) return res.status(404).json({ success: false, message: "Student not found" });
 
-// @desc    Approve a daily status request
-// @route   PUT /api/admin/daily-requests/:id/approve
-// @access  Admin
-exports.approveDailyStatusRequest = async (req, res) => {
-  try {
-    const requestId = req.params.id;
-    const request = await MessRequest.findById(requestId);
-    
-    if (!request) {
-      return res.status(404).json({ success: false, message: "Request not found" });
+    const consumptionData = [];
+    for (let d = 1; d <= daysInMonth; d++) {
+      const currentMoment = moment.tz(`${year}-${month + 1}-${d}`, 'YYYY-MM-DD', 'Asia/Kolkata').startOf('day');
+
+      // Determine Mess Status
+      let status = 'Open';
+      const lastChange = student.lastRequestDate ? moment.tz(student.lastRequestDate, 'Asia/Kolkata').startOf('day') : null;
+      const currentStatus = student.messStatus;
+
+      if (lastChange) {
+        if (currentStatus === 'Closed') {
+          status = currentMoment.isSameOrAfter(lastChange) ? 'Closed' : 'Open';
+        } else {
+          status = currentMoment.isSameOrAfter(lastChange) ? 'Open' : 'Closed';
+        }
+      } else {
+        status = currentStatus;
+      }
+
+      // Hide future status
+      const today = moment.tz('Asia/Kolkata').startOf('day');
+      if (currentMoment.isAfter(today)) {
+        status = 'ND';
+      }
+
+      // Check Leaves
+      const onLeave = leaves.some(l => {
+        const start = moment.tz(l.startDate, 'Asia/Kolkata').startOf('day');
+        const end = moment.tz(l.endDate, 'Asia/Kolkata').startOf('day');
+        return currentMoment.isSameOrAfter(start) && currentMoment.isSameOrBefore(end);
+      });
+
+      if (onLeave) status = 'Closed';
+
+      // Check Mess Requests (Overrides)
+      const request = messRequests.find(r => {
+        return moment.tz(r.date, 'Asia/Kolkata').startOf('day').isSame(currentMoment, 'day');
+      });
+
+      if (request) {
+        status = request.action === 'OPEN' ? 'Open' : 'Closed';
+      }
+
+      // Collect Extras and Guest Meals
+      const dailyTx = transactions.filter(t => {
+        return moment(t.date).tz('Asia/Kolkata').isSame(currentMoment, 'day');
+      });
+
+      const extras = dailyTx
+        .filter(t => t.type === 'Extra')
+        .map(t => ({
+          item: t.description.replace('Extra: ', ''),
+          amount: t.amount,
+          meal: t.mealType
+        }));
+
+      const guestDetails = dailyTx
+        .filter(t => t.type === 'Guest')
+        .map(t => ({
+          meal: t.mealType,
+          amount: t.amount
+        }));
+
+      // Daily total including meals
+      let dailyBill = 0;
+      dailyTx.forEach(t => {
+        if (['DailyMeals', 'Extra', 'Guest', 'Fine'].includes(t.type)) {
+          dailyBill += t.amount;
+        }
+      });
+
+      consumptionData.push({
+        date: currentMoment.format('YYYY-MM-DD'),
+        day: d,
+        messStatus: status.toUpperCase(),
+        extras,
+        guestMeals: guestDetails.length,
+        guestDetails,
+        dailyBill
+      });
     }
 
-    request.status = 'APPROVED';
-    await request.save();
-
-    res.status(200).json({ success: true, message: "Request approved successfully" });
+    res.status(200).json({ success: true, consumption: consumptionData });
   } catch (error) {
-    console.error("Error approving daily request:", error);
-    res.status(500).json({ success: false, message: "Server error approving request" });
-  }
-};
-
-// @desc    Reject a daily status request
-// @route   DELETE /api/admin/daily-requests/:id
-// @access  Admin
-exports.rejectDailyStatusRequest = async (req, res) => {
-  try {
-    const requestId = req.params.id;
-    const request = await MessRequest.findById(requestId);
-    
-    if (!request) {
-      return res.status(404).json({ success: false, message: "Request not found" });
-    }
-
-    request.status = 'REJECTED';
-    await request.save();
-
-    res.status(200).json({ success: true, message: "Request rejected successfully" });
-  } catch (error) {
-    console.error("Error rejecting daily request:", error);
-    res.status(500).json({ success: false, message: "Server error rejecting request" });
-  }
-};
-// @desc    Get processed daily status requests (History)
-// @route   GET /api/admin/daily-requests/history
-// @access  Admin
-exports.getProcessedDailyRequests = async (req, res) => {
-  try {
-    const requests = await MessRequest.find({ status: { $ne: 'PENDING' } })
-      .populate('student', 'name messAccount')
-      .sort({ updatedAt: -1 })
-      .limit(50);
-    
-    res.status(200).json({ success: true, requests });
-  } catch (error) {
-    console.error("Error fetching request history:", error);
-    res.status(500).json({ success: false, message: "Server error fetching history" });
+    console.error("Error fetching student consumption:", error);
+    res.status(500).json({ success: false, message: "Server error fetching consumption" });
   }
 };

@@ -8,10 +8,19 @@ const ConsumptionEntry = () => {
     studentId: '',
     date: new Date().toISOString().split('T')[0],
     extras: [{ item: '', quantity: 1, price: 0 }],
-    guestMeals: 0
+    guestMeals: 0,
+    mealType: 'Lunch'
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
+
+  // Determine current meal based on time
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 11) setFormData(prev => ({ ...prev, mealType: 'Breakfast' }));
+    else if (hour >= 11 && hour < 16) setFormData(prev => ({ ...prev, mealType: 'Lunch' }));
+    else if (hour >= 16 && hour < 23) setFormData(prev => ({ ...prev, mealType: 'Dinner' }));
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -72,12 +81,12 @@ const ConsumptionEntry = () => {
     try {
       await api.post('/api/butler/add-consumption', formData);
       setMessage({ type: 'success', text: 'Consumption logged successfully!' });
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         studentId: '',
-        date: new Date().toISOString().split('T')[0],
         extras: [{ item: '', quantity: 1, price: 0 }],
         guestMeals: 0
-      });
+      }));
     } catch (err) {
       setMessage({ type: 'danger', text: err.response?.data?.message || 'Failed to log consumption' });
     } finally {
@@ -104,7 +113,13 @@ const ConsumptionEntry = () => {
               >
                 <option value="">Choose student...</option>
                 {students.map(s => (
-                  <option key={s._id} value={s._id}>{s.name} ({s.messAccount})</option>
+                  <option 
+                    key={s._id} 
+                    value={s._id} 
+                    disabled={s.messStatus === 'Closed'}
+                  >
+                    {s.name} ({s.messAccount}) {s.messStatus === 'Closed' ? '— CLOSED' : ''}
+                  </option>
                 ))}
               </select>
             </div>
@@ -117,6 +132,22 @@ const ConsumptionEntry = () => {
                 </span>
                 <span className="badge bg-primary ms-auto">TODAY</span>
               </div>
+            </div>
+          </div>
+
+          <div className="mt-4">
+            <label className="form-label small fw-bold text-muted d-block mb-3">Meal Category</label>
+            <div className="d-flex gap-2">
+              {['Breakfast', 'Lunch', 'Dinner'].map(meal => (
+                <button
+                  key={meal}
+                  type="button"
+                  className={`btn flex-grow-1 py-2 fw-bold rounded-3 ${formData.mealType === meal ? 'btn-primary' : 'btn-outline-light text-dark'}`}
+                  onClick={() => setFormData({ ...formData, mealType: meal })}
+                >
+                  {meal}
+                </button>
+              ))}
             </div>
           </div>
 

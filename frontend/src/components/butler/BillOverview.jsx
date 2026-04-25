@@ -30,7 +30,8 @@ const BillOverview = () => {
   const filteredBills = bills.filter(bill => {
     const matchesSearch = bill.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           bill.messAccount.includes(searchTerm);
-    const exceedsThreshold = bill.previousDues >= threshold;
+    // Filter based on Total Payable (Net Payable) as requested
+    const exceedsThreshold = bill.totalPayable >= threshold;
     return matchesSearch && exceedsThreshold;
   });
 
@@ -46,11 +47,13 @@ const BillOverview = () => {
     doc.text(`Previous Dues Threshold: >= ₹${threshold}`, 14, 35);
     
     // Table
-    const tableColumn = ["Account #", "Student Name", "Prev. Dues", "Curr. Month", "Total Payable"];
+    const tableColumn = ["Account #", "Student Name", "Prev. Dues", "Extras", "Guest", "Curr. Month", "Total Payable"];
     const tableRows = filteredBills.map(bill => [
       bill.messAccount,
       bill.name,
       `Rs. ${bill.previousDues}`,
+      `Rs. ${bill.extraTotal}`,
+      `Rs. ${bill.guestTotal}`,
       `Rs. ${bill.currentMonthTotal}`,
       `Rs. ${bill.totalPayable}`
     ]);
@@ -61,9 +64,9 @@ const BillOverview = () => {
       startY: 45,
       theme: 'grid',
       headStyles: { fillColor: '#16181d', textColor: 255 },
-      styles: { fontSize: 9 },
+      styles: { fontSize: 8 }, // Slightly smaller font to fit more columns
       columnStyles: {
-        4: { fontStyle: 'bold' }
+        6: { fontStyle: 'bold' }
       }
     });
 
@@ -122,14 +125,16 @@ const BillOverview = () => {
                   <th className="small text-uppercase fw-bold text-dark">Student</th>
                   <th className="small text-uppercase fw-bold text-dark">Account</th>
                   <th className="small text-uppercase fw-bold text-dark text-end">Prev. Dues</th>
-                  <th className="small text-uppercase fw-bold text-dark text-end">Current Month</th>
+                  <th className="small text-uppercase fw-bold text-dark text-end">Extras</th>
+                  <th className="small text-uppercase fw-bold text-dark text-end">Guest</th>
+                  <th className="small text-uppercase fw-bold text-dark text-end">Base Bill (B+L+D)</th>
                   <th className="small text-uppercase fw-bold text-dark text-end">Total Payable</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredBills.length === 0 ? (
                   <tr>
-                    <td colSpan="5" className="text-center py-4 text-muted italic">No students exceed the threshold.</td>
+                    <td colSpan="7" className="text-center py-4 text-muted italic">No students exceed the threshold.</td>
                   </tr>
                 ) : (
                   filteredBills.map(bill => (
@@ -137,6 +142,8 @@ const BillOverview = () => {
                       <td className="fw-bold text-dark">{bill.name}</td>
                       <td><span className="badge bg-light text-dark border fw-bold">{bill.messAccount}</span></td>
                       <td className="text-end text-dark">₹{bill.previousDues.toLocaleString()}</td>
+                      <td className="text-end text-muted">₹{bill.extraTotal.toLocaleString()}</td>
+                      <td className="text-end text-muted">₹{bill.guestTotal.toLocaleString()}</td>
                       <td className="text-end text-dark">₹{bill.currentMonthTotal.toLocaleString()}</td>
                       <td className="text-end"><span className="fw-bold text-danger fs-5">₹{bill.totalPayable.toLocaleString()}</span></td>
                     </tr>
@@ -150,7 +157,7 @@ const BillOverview = () => {
         <div className="mt-3 text-center">
           <small className="text-dark fw-bold">
             <i className="bi bi-info-circle me-1 text-primary"></i>
-            Showing {filteredBills.length} students with Previous Dues {'>'}= ₹{threshold}
+            Showing {filteredBills.length} students with Net Payable {'>'}= ₹{threshold}
           </small>
         </div>
       </div>

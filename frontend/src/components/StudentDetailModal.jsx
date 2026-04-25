@@ -11,6 +11,9 @@ const StudentDetailModal = ({ student, onClose }) => {
     messAccount: student?.messAccount || ''
   });
   const [updating, setUpdating] = useState(false);
+  const [consumption, setConsumption] = useState([]);
+  const [fetchingConsumption, setFetchingConsumption] = useState(true);
+  const [selectedDayData, setSelectedDayData] = useState(null);
 
   useEffect(() => {
     const fetchAttendance = async () => {
@@ -34,6 +37,59 @@ const StudentDetailModal = ({ student, onClose }) => {
       fetchAttendance();
     }
   }, [student]);
+
+  useEffect(() => {
+    const fetchConsumption = async () => {
+      setFetchingConsumption(true);
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch(`http://localhost:5000/api/admin/students/${student._id}/consumption`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await response.json();
+        if (data.success) {
+          setConsumption(data.consumption);
+        }
+      } catch (err) {
+        console.error("Error fetching consumption:", err);
+      } finally {
+        setFetchingConsumption(false);
+      }
+    };
+
+    if (student?._id) {
+      fetchConsumption();
+    }
+  }, [student]);
+
+  // Calendar Logic
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const weeks = [];
+  let currentWeek = [];
+
+  if (Array.isArray(consumption) && consumption.length > 0) {
+    const firstDate = new Date(consumption[0].date);
+    const firstDay = firstDate.getDay();
+
+    for (let i = 0; i < firstDay; i++) {
+      currentWeek.push(null);
+    }
+
+    consumption.forEach((day) => {
+      currentWeek.push(day);
+      if (currentWeek.length === 7) {
+        weeks.push(currentWeek);
+        currentWeek = [];
+      }
+    });
+
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) {
+        currentWeek.push(null);
+      }
+      weeks.push(currentWeek);
+    }
+  }
 
   const handleUpdate = async () => {
     setUpdating(true);
@@ -238,25 +294,176 @@ const StudentDetailModal = ({ student, onClose }) => {
                     </div>
                   )}
                 </div>
-                {/* Zone 3: 30-Day Monthly Status Grid */}
+                {/* Zone 3: Detailed Consumption Calendar */}
                 <div className="mt-4 pt-4 border-top">
-                  <h6 className="text-uppercase small fw-bold text-muted mb-3">Monthly Mess Status (Current Month)</h6>
-                  <div className="d-flex flex-wrap gap-2">
-                    {student.monthlyStatus && student.monthlyStatus.map((isOpen, dayIdx) => (
-                      <div 
-                        key={dayIdx} 
-                        className={`d-flex flex-column align-items-center justify-content-center rounded border ${isOpen ? 'bg-success bg-opacity-10 border-success' : 'bg-danger bg-opacity-10 border-danger'}`}
-                        style={{ width: '40px', height: '40px' }}
-                        title={`Day ${dayIdx + 1}: ${isOpen ? 'Open' : 'Closed (Leave)'}`}
-                      >
-                        <span className="fw-bold" style={{ fontSize: '0.7rem', color: isOpen ? '#198754' : '#dc3545' }}>{dayIdx + 1}</span>
-                        <i className={`bi bi-circle-fill`} style={{ fontSize: '0.4rem', color: isOpen ? '#198754' : '#dc3545' }}></i>
-                      </div>
-                    ))}
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <h6 className="text-uppercase small fw-bold text-muted mb-0">Monthly Consumption History</h6>
+                    <span className="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 fw-normal">Current Month</span>
                   </div>
-                  <div className="d-flex gap-3 mt-3">
-                    <small className="text-muted"><i className="bi bi-circle-fill text-success me-1"></i> Account Open</small>
-                    <small className="text-muted"><i className="bi bi-circle-fill text-danger me-1"></i> On Leave / Closed</small>
+
+                  {fetchingConsumption ? (
+                    <div className="text-center py-4">
+                      <div className="spinner-border spinner-border-sm text-primary" role="status"></div>
+                    </div>
+                  ) : (
+                    <div className="row g-3">
+                      <div className="col-12">
+                        <div className="table-responsive">
+                          <table className="table table-bordered table-sm text-center mb-0" style={{ tableLayout: 'fixed' }}>
+                            <thead className="bg-light">
+                              <tr>
+                                {daysOfWeek.map(day => <th key={day} className="py-2 extra-small text-muted text-uppercase">{day}</th>)}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {weeks.map((week, wIndex) => (
+                                <tr key={wIndex}>
+                                  {week.map((day, dIndex) => {
+                                    if (!day) return <td key={dIndex} className="bg-light border-0"></td>;
+                                    
+                                    const isSelected = selectedDayData?.date === day.date;
+                                    const isToday = new Date().toDateString() === new Date(day.date).toDateString();
+                                    
+                                    return (
+                                      <td 
+                                        key={dIndex} 
+                                        className={`p-0 position-relative cursor-pointer transition-all ${isSelected ? 'bg-primary bg-opacity-10 border-primary' : (isToday ? 'border-primary border-2' : '')}`}
+                                        style={{ height: '70px', cursor: 'pointer' }}
+                                        onClick={() => setSelectedDayData(day)}
+                                      >
+                                        <div className="d-flex flex-column justify-content-between h-100 p-2">
+                                          <div className="d-flex justify-content-between align-items-start">
+                                            <span className={`fw-bold ${isSelected || isToday ? 'text-primary' : 'text-muted'}`} style={{ fontSize: '0.75rem' }}>{day.day}</span>
+                                            {day.messStatus !== 'ND' && (
+                                              <span 
+                                                className="rounded-circle" 
+                                                style={{ 
+                                                  width: '8px', 
+                                                  height: '8px', 
+                                                  backgroundColor: day.messStatus === 'OPEN' ? '#28a745' : '#dc3545'
+                                                }}
+                                              ></span>
+                                            )}
+                                          </div>
+                                          
+                                          <div className="text-center">
+                                            {day.dailyBill > 0 ? (
+                                              <span className="fw-bold text-dark" style={{ fontSize: '0.8rem' }}>₹{day.dailyBill}</span>
+                                            ) : (
+                                              <span className="text-muted opacity-50" style={{ fontSize: '0.7rem' }}>—</span>
+                                            )}
+                                          </div>
+ 
+                                          <div className="d-flex justify-content-center gap-1 mt-1">
+                                            {day.guestMeals > 0 && <span className="badge bg-info text-dark p-0 d-flex justify-content-center align-items-center" style={{ width: '14px', height: '14px', fontSize: '0.6rem' }} title="Guests">G</span>}
+                                            {day.extras.length > 0 && <span className="badge bg-warning text-dark p-0 d-flex justify-content-center align-items-center" style={{ width: '14px', height: '14px', fontSize: '0.6rem' }} title="Extras">E</span>}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+
+                      {/* Day Detail Selection */}
+                      {selectedDayData && (
+                        <div className="col-12">
+                          <div className="card border-0 bg-light rounded-3 animate__animated animate__fadeInUp" style={{ animationDuration: '0.3s' }}>
+                            <div className="card-body p-3">
+                              <div className="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                                <h6 className="mb-0 fw-bold small text-dark">
+                                  <i className="bi bi-calendar-event me-2 text-primary"></i>
+                                  Details for {new Date(selectedDayData.date).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' })}
+                                </h6>
+                                <button className="btn-close small" style={{ fontSize: '0.5rem' }} onClick={() => setSelectedDayData(null)}></button>
+                              </div>
+                              
+                              <div className="row g-2">
+                                <div className="col-6">
+                                  <div className="bg-white p-2 rounded border-start border-3 border-primary">
+                                    <span className="extra-small text-muted d-block">Mess Status</span>
+                                    <span className={`fw-bold small ${selectedDayData.messStatus === 'OPEN' ? 'text-success' : 'text-danger'}`}>
+                                      {selectedDayData.messStatus === 'ND' ? 'No Data' : selectedDayData.messStatus}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="col-6">
+                                  <div className="bg-white p-2 rounded border-start border-3 border-dark">
+                                    <span className="extra-small text-muted d-block">Total Daily Bill</span>
+                                    <span className="fw-bold small text-dark">₹{selectedDayData.dailyBill || 0}</span>
+                                  </div>
+                                </div>
+
+                                {/* Extras Section */}
+                                {selectedDayData.extras.length > 0 && (
+                                  <div className="col-12 mt-2">
+                                    <span className="extra-small fw-bold text-uppercase text-muted mb-1 d-block">Extras Consumed</span>
+                                    <div className="bg-white p-2 rounded border">
+                                      {selectedDayData.extras.map((ex, idx) => (
+                                        <div key={idx} className="d-flex justify-content-between align-items-center small py-1 border-bottom last-child-border-0">
+                                          <span>
+                                            <span className={`badge ${
+                                              ex.meal === 'Breakfast' ? 'bg-info text-dark' : 
+                                              ex.meal === 'Lunch' ? 'bg-warning text-dark' : 
+                                              ex.meal === 'Dinner' ? 'bg-dark text-white' : 'bg-light text-dark'
+                                            } border me-2 extra-small fw-normal`}>
+                                              {ex.meal || 'N/A'}
+                                            </span>
+                                            {ex.item.replace('Extra: ', '')}
+                                          </span>
+                                          <span className="fw-bold">₹{ex.amount}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Guests Section */}
+                                {selectedDayData.guestDetails.length > 0 && (
+                                  <div className="col-12 mt-2">
+                                    <span className="extra-small fw-bold text-uppercase text-muted mb-1 d-block">Guest Meals</span>
+                                    <div className="bg-white p-2 rounded border">
+                                      {selectedDayData.guestDetails.map((g, idx) => (
+                                        <div key={idx} className="d-flex justify-content-between align-items-center small py-1 border-bottom last-child-border-0">
+                                          <span>
+                                            <span className={`badge ${
+                                              g.meal === 'Breakfast' ? 'bg-info text-dark' : 
+                                              g.meal === 'Lunch' ? 'bg-warning text-dark' : 
+                                              g.meal === 'Dinner' ? 'bg-dark text-white' : 'bg-light text-dark'
+                                            } border me-2 extra-small fw-normal`}>
+                                              {g.meal || 'N/A'}
+                                            </span>
+                                            <i className="bi bi-person-fill me-1 opacity-50"></i> Guest
+                                          </span>
+                                          <span className="fw-bold">₹{g.amount}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {selectedDayData.extras.length === 0 && selectedDayData.guestDetails.length === 0 && (
+                                  <div className="col-12 mt-1">
+                                    <p className="extra-small text-center text-muted italic p-2 bg-white rounded border">No extra items or guests on this day.</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="d-flex justify-content-center gap-3 mt-3">
+                    <small className="text-muted extra-small"><i className="bi bi-circle-fill text-success me-1"></i> Open</small>
+                    <small className="text-muted extra-small"><i className="bi bi-circle-fill text-danger me-1"></i> Closed</small>
+                    <small className="text-muted extra-small"><i className="bi bi-circle-fill text-info me-1"></i> Guests</small>
+                    <small className="text-muted extra-small"><i className="bi bi-circle-fill text-warning me-1"></i> Extras</small>
                   </div>
                 </div>
               </div>

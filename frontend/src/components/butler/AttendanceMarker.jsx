@@ -63,7 +63,13 @@ const AttendanceMarker = () => {
             >
               <option value="">Select student...</option>
               {students.map(s => (
-                <option key={s._id} value={s._id}>{s.name} ({s.messAccount})</option>
+                <option 
+                  key={s._id} 
+                  value={s._id} 
+                  disabled={s.messStatus === 'Closed'}
+                >
+                  {s.name} ({s.messAccount}) {s.messStatus === 'Closed' ? '— CLOSED' : ''}
+                </option>
               ))}
             </select>
           </div>

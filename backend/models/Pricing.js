@@ -8,11 +8,9 @@ const priceCategorySchema = new mongoose.Schema({
 }, { _id: false });
 
 const pricingSchema = new mongoose.Schema({
-  baseFee: { type: Number, default: 1200 },
   student: priceCategorySchema,
   guest: priceCategorySchema,
   rules: {
-    noticeHours: { type: Number, default: 24 },
     maxLeaveDays: { type: Number, default: 10 }
   },
   auditLog: [{

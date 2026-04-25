@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.get('/', protect, (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'butler')) {
     return noticeController.getNotices(req, res, next);
   } else {
     return noticeController.getActiveNotices(req, res, next);

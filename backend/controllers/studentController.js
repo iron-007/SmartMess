@@ -187,11 +187,11 @@ exports.requestMessStatusChange = async (req, res) => {
       const lastRequest = moment(student.lastRequestDate);
       const now = moment();
       const hoursSinceLast = now.diff(lastRequest, 'hours');
-      
+
       if (hoursSinceLast < 24) {
         const hoursRemaining = 24 - hoursSinceLast;
-        return res.status(400).json({ 
-          message: `Cooldown Active: Please wait ${hoursRemaining} more hours before making another change.` 
+        return res.status(400).json({
+          message: `Cooldown Active: Please wait ${hoursRemaining} more hours before making another change.`
         });
       }
     }
@@ -200,7 +200,7 @@ exports.requestMessStatusChange = async (req, res) => {
     const newStatus = (requestType === 'Request_Open') ? 'Open' : 'Closed';
     student.messStatus = newStatus;
     student.lastRequestDate = new Date(); // Reset 24h cooldown timer
-    
+
     student.messStatusLog.push({
       action: `Status Changed: ${newStatus}`,
       remark: `Changed by student via instant toggle. Effective Date: ${effectiveDate || 'Immediately'}`
@@ -208,10 +208,10 @@ exports.requestMessStatusChange = async (req, res) => {
 
     await student.save();
 
-    res.status(200).json({ 
+    res.status(200).json({
       success: true,
-      message: `Your mess account is now ${newStatus.toUpperCase()}!`, 
-      user: student 
+      message: `Your mess account is now ${newStatus.toUpperCase()}!`,
+      user: student
     });
   } catch (error) {
     console.error('Error submitting account request:', error);
@@ -225,14 +225,9 @@ exports.requestMessStatusChange = async (req, res) => {
 exports.getStudentDues = async (req, res) => {
   try {
     const studentId = req.user._id;
-    const now = new Date();
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-
-    // Fetch Pricing for Base Fee
-    const pricing = await Pricing.findOne();
-    const baseFee = pricing?.baseFee || 0;
-    const rebateRate = 27; // Fixed rebate as requested
+    const nowIST = moment.tz("Asia/Kolkata");
+    const startOfMonth = nowIST.clone().startOf("month").toDate();
+    const endOfMonth = nowIST.clone().endOf("month").toDate();
 
     // Fetch transactions for current month
     const transactions = await Transaction.find({
@@ -240,51 +235,43 @@ exports.getStudentDues = async (req, res) => {
       date: { $gte: startOfMonth, $lte: endOfMonth }
     });
 
-    const extraTotal = transactions.filter(t => t.type === 'Extra').reduce((acc, t) => acc + t.amount, 0);
-    const guestTotal = transactions.filter(t => t.type === 'Guest').reduce((acc, t) => acc + t.amount, 0);
-    const fineTotal = transactions.filter(t => t.type === 'Fine').reduce((acc, t) => acc + t.amount, 0);
-    
-    // Calculate Rebate (Days Closed * Daily Rate)
-    // We need to check history for the current month up to today
-    const daysInMonthSoFar = now.getDate();
-    let closedDays = 0;
-    
+    let dailyMealsTotal = 0;
+    let extraTotal = 0;
+    let guestTotal = 0;
+    let fineTotal = 0;
+    let paymentsTotal = 0;
+    let rebateTotal = 0;
+    let currentMonthTotal = 0;
+
+    transactions.forEach(t => {
+      const amount = Math.abs(t.amount || 0);
+
+      // Categorize for breakdown
+      if (t.type === 'DailyMeals') dailyMealsTotal += amount;
+      if (t.type === 'Extra') extraTotal += amount;
+      if (t.type === 'Guest') guestTotal += amount;
+      if (t.type === 'Fine') fineTotal += amount;
+      if (t.type === 'Payment') paymentsTotal += amount;
+      if (t.type === 'Rebate') rebateTotal += amount;
+    });
+
     const student = await User.findById(studentId);
-    const lastChange = student.lastRequestDate ? moment.tz(student.lastRequestDate, 'Asia/Kolkata').startOf('day') : null;
-    const currentStatus = student.messStatus;
-
-    for (let d = 1; d <= daysInMonthSoFar; d++) {
-      const dMoment = moment.tz(`${now.getFullYear()}-${now.getMonth() + 1}-${d}`, 'YYYY-MM-DD', 'Asia/Kolkata').startOf('day');
-      
-      let dayStatus = 'Open';
-      if (lastChange) {
-        if (currentStatus === 'Closed') {
-          dayStatus = dMoment.isSameOrAfter(lastChange) ? 'Closed' : 'Open';
-        } else {
-          dayStatus = dMoment.isSameOrAfter(lastChange) ? 'Open' : 'Closed';
-        }
-      } else {
-        dayStatus = currentStatus;
-      }
-      
-      if (dayStatus === 'Closed') closedDays++;
-    }
-
-    const rebateTotal = closedDays * rebateRate;
     const previousDues = student.previousDues || 0;
     
-    // Final Calculation
-    // We'll assume the student pays: Base Fee + Extras + Guests + Fines - Rebates
-    const currentMonthTotal = baseFee + extraTotal + guestTotal + fineTotal - rebateTotal;
-    const totalPayable = currentMonthTotal + previousDues;
+    // currentMonthBill: Total of all charges incurred this month (Gross)
+    const currentMonthBill = dailyMealsTotal + extraTotal + guestTotal + fineTotal;
+    
+    // totalPayable: (Prev Dues + Monthly Charges) - (Payments + Rebates)
+    const totalPayable = previousDues + currentMonthBill - (paymentsTotal + rebateTotal);
 
     res.status(200).json({
-      baseFee,
+      dailyMealsTotal,
       extraTotal,
       guestTotal,
       fineTotal,
+      paymentsTotal,
       rebateTotal,
-      currentMonthTotal,
+      currentMonthTotal: currentMonthBill,
       previousDues,
       totalPayable
     });
@@ -355,7 +342,7 @@ exports.getStudentConsumptionMonthly = async (req, res) => {
       // --- FUTURE DAYS: Hide Status ---
       const today = moment.tz('Asia/Kolkata').startOf('day');
       if (currentMoment.isAfter(today)) {
-        status = 'ND'; 
+        status = 'ND';
       }
 
       // Check Leaves (Highest priority for Closed)
@@ -378,17 +365,17 @@ exports.getStudentConsumptionMonthly = async (req, res) => {
 
       // Collect Extras and Guest Meals
       const dailyTx = transactions.filter(t => {
-        return moment.tz(t.date, 'Asia/Kolkata').startOf('day').isSame(currentMoment, 'day');
+        return moment(t.date).tz('Asia/Kolkata').isSame(currentMoment, 'day');
       });
 
       const extras = dailyTx
         .filter(t => t.type === 'Extra')
-        .map(t => ({ 
-          item: t.description, 
+        .map(t => ({
+          item: t.description,
           amount: t.amount,
-          meal: t.mealType 
+          meal: t.mealType
         }));
-      
+
       const guestDetails = dailyTx
         .filter(t => t.type === 'Guest')
         .map(t => ({
@@ -411,4 +398,4 @@ exports.getStudentConsumptionMonthly = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
-
+

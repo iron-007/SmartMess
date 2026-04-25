@@ -19,6 +19,7 @@ router.post('/mark-attendance', butlerController.markAttendance);
 // Extras & Guest Consumption
 router.get('/students', butlerController.getButlerStudents);
 router.post('/add-consumption', butlerController.addConsumption);
+router.get('/consumption-history', butlerController.getConsumptionHistory);
 
 // Bill Overview & Defaulters
 router.get('/student-bills', butlerController.getStudentBills);

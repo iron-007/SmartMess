@@ -135,19 +135,6 @@ const DynamicPricing = () => {
                   </table>
                 </div>
 
-                <div className="row g-3 bg-light p-3 rounded-4 border border-light mt-2 align-items-center">
-                  <div className="col-md-7">
-                     <h6 className="fw-bold text-dark mb-1"><i className="bi bi-shield-lock text-muted me-2"></i>Minimum Rebate Notice</h6>
-                     <small className="text-muted">Hours required before meal time to pause charges.</small>
-                  </div>
-                  <div className="col-md-5">
-                    <div className="input-group shadow-sm rounded-3 overflow-hidden border">
-                      <input type="number" className="form-control border-0 modern-input rounded-0 bg-white text-center fw-bold" 
-                        value={pricing.rules?.noticeHours || ''} onChange={(e) => handleNestedChange('rules', 'noticeHours', e.target.value)} min="0" required />
-                      <span className="input-group-text bg-light border-0 text-muted fw-semibold">Hours</span>
-                    </div>
-                  </div>
-                </div>
 
                 {/* EXTRA ITEM PRICING SECTION */}
                 <div className="mt-5 mb-3">
@@ -261,10 +248,6 @@ const DynamicPricing = () => {
                     <li className="mb-3 d-flex align-items-start">
                       <i className="bi bi-check-circle-fill text-success mt-1 me-2"></i>
                       <span>Students can pause their accounts for any number of days to stop charges.</span>
-                    </li>
-                    <li className="mb-3 d-flex align-items-start">
-                      <i className="bi bi-clock-fill text-warning mt-1 me-2"></i>
-                      <span>A strict notice period of <strong>{pricing.rules?.noticeHours || 24} hours</strong> is required to cancel a meal successfully.</span>
                     </li>
                     <li className="d-flex align-items-start">
                       <i className="bi bi-shield-lock-fill text-primary mt-1 me-2"></i>

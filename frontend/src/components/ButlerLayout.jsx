@@ -32,7 +32,11 @@ const ButlerLayout = () => {
             <span className="link-text">Dashboard</span>
           </Link>
 
-          
+          <Link to="/butler/extras" className={`sidebar-link ${isActive('/butler/extras')}`}>
+            <i className="bi bi-egg-fried"></i>
+            <span className="link-text">Extras & Guest</span>
+          </Link>
+
           <Link to="/butler/notices" className={`sidebar-link ${isActive('/butler/notices')}`}>
             <i className="bi bi-megaphone"></i>
             <span className="link-text">Notices</span>

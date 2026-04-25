@@ -160,7 +160,7 @@ const StudentDirectory = () => {
     borderBottom: 'none'
   };
 
-  const totalColumns = dayHeaders.length + 7;
+  const totalColumns = 10;
 
   return (
     <div className="container-fluid py-2">
@@ -243,10 +243,11 @@ const StudentDirectory = () => {
                   <th className="py-3 px-3 small text-uppercase" style={{ ...stickyHeaderStyle, left: '350px', minWidth: '100px' }}>Year</th>
                   <th className="py-3 px-3 small text-uppercase text-center" style={{ ...stickyHeaderStyle, left: '450px', minWidth: '140px', boxShadow: '2px 0 5px rgba(0,0,0,0.2)' }}>Actions</th>
 
+                  <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle }}>Daily Bill</th>
                   <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle }}>Extras</th>
+                  <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle }}>Guest</th>
                   <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle }}>Fine</th>
-                  <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle }}>Current Bill</th>
-                  <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle }}>Previous Dues</th>
+                  <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle }}>Prev. Dues</th>
                   <th className="py-3 px-4 text-end small text-uppercase" style={{ ...standardHeaderStyle }}>Net Payable</th>
                 </tr>
               </thead>
@@ -271,7 +272,6 @@ const StudentDirectory = () => {
                   </tr>
                 ) : filteredStudents.length > 0 ? (
                   filteredStudents.map((student, index) => {
-                    const netPayable = student.currentMonthBill + student.previousDues;
                     return (
                       <tr key={student._id} className={index !== filteredStudents.length - 1 ? "border-bottom" : ""}>
                         
@@ -292,19 +292,22 @@ const StudentDirectory = () => {
                         </td>
 
                         <td className="text-end py-3 px-4 text-secondary">
+                          ₹{(student.dailyMealsTotal || 0).toLocaleString()}
+                        </td>
+                        <td className="text-end py-3 px-4 text-secondary">
                           ₹{(student.totalExtras || 0).toLocaleString()}
+                        </td>
+                        <td className="text-end py-3 px-4 text-secondary">
+                          ₹{(student.totalGuestAmount || 0).toLocaleString()}
                         </td>
                         <td className="text-end py-3 px-4 text-danger fw-bold">
                           ₹{(student.fineAmount || 0).toLocaleString()}
-                        </td>
-                        <td className="text-end py-3 px-4 text-secondary fw-medium">
-                          ₹{student.currentMonthBill.toLocaleString()}
                         </td>
                         <td className={`text-end py-3 px-4 fw-semibold ${student.previousDues > 0 ? 'text-danger' : 'text-secondary'}`}>
                           ₹{student.previousDues.toLocaleString()}
                         </td>
                         <td className="text-end py-3 px-4 bg-light fw-bold text-dark border-start">
-                          ₹{netPayable.toLocaleString()}
+                          ₹{(student.dailyMealsTotal + student.totalExtras + student.totalGuestAmount + student.fineAmount + student.previousDues).toLocaleString()}
                         </td>
                       </tr>
                     );

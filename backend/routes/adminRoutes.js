@@ -15,6 +15,7 @@ router.put('/pricing', protect, isAdmin, adminController.updatePricing);
 router.get('/students', protect, isAdmin, adminController.getAllStudents);
 router.put('/students/:id', protect, isAdmin, adminController.updateStudent);
 router.get('/students/:id/attendance', protect, isAdmin, adminController.getStudentAttendance);
+router.get('/students/:id/consumption', protect, isAdmin, adminController.getStudentConsumption);
 
 // --- Billing & Ledger Endpoints ---
 // Secret Manual Trigger for the Midnight Ledger (Admin Only)

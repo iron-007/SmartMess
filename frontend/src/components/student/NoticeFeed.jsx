@@ -21,7 +21,7 @@ const NoticeFeed = ({ notices }) => {
                 </p>
                 {notice.attachmentUrl && (
                   <a 
-                    href={`/${notice.attachmentUrl}`} 
+                    href={`http://localhost:5000/${notice.attachmentUrl}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="btn btn-sm btn-outline-secondary mt-2 py-1 px-2 small"
