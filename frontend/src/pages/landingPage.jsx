@@ -1,8 +1,37 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import "./LandingPage.css";
 
 const LandingPage = () => {
+    const [formStatus, setFormStatus] = useState(null);
+
+    const handleContactSubmit = async (e) => {
+        e.preventDefault();
+        setFormStatus('submitting');
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        
+        try {
+            const response = await fetch("https://formsubmit.co/ajax/aryan.pandey01x@gmail.com", {
+                method: "POST",
+                body: formData,
+            });
+            
+            if (response.ok) {
+                setFormStatus('success');
+                form.reset();
+                setTimeout(() => setFormStatus(null), 5000);
+            } else {
+                setFormStatus('error');
+                setTimeout(() => setFormStatus(null), 5000);
+            }
+        } catch (error) {
+            setFormStatus('error');
+            setTimeout(() => setFormStatus(null), 5000);
+        }
+    };
+
     return (
         <div className="landing-container">
             {/* NAVBAR */}
@@ -14,11 +43,12 @@ const LandingPage = () => {
                         </div>
                         <span className="logo-text">SmartMess</span>
                     </div>
-                    <div className="nav-links d-none d-md-flex gap-4 align-items-center">
-                        <a href="#features">Features</a>
-                        <a href="#roles">Roles</a>
-                        <a href="#about">About Us</a>
-                        <Link to="/login" className="btn btn-outline-dark rounded-pill px-4">Login</Link>
+                    <div className="nav-links d-none d-md-flex gap-4 align-items-center fw-medium">
+                        <a href="#features" className="text-dark text-decoration-none opacity-75 text-hover-primary">Features</a>
+                        <a href="#roles" className="text-dark text-decoration-none opacity-75 text-hover-primary">Solutions</a>
+                        <a href="#about" className="text-dark text-decoration-none opacity-75 text-hover-primary">About Us</a>
+                        <a href="#contact" className="text-dark text-decoration-none opacity-75 text-hover-primary">Contact Us</a>
+                        <Link to="/login" className="btn btn-outline-dark rounded-pill px-4 ms-2">Login</Link>
                         <Link to="/register" className="btn btn-gradient rounded-pill px-4">Get Started</Link>
                     </div>
                     <div className="d-md-none">
@@ -228,36 +258,44 @@ const LandingPage = () => {
                 <div className="row g-4 justify-content-center">
                     {[
                         {
-                            name: "Person 1",
-                            role: "Lead Developer",
-                            intro: "Passionate about building scalable backend systems and optimizing performance for better user experience.",
-                            img: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80"
+                            name: "Anand Raj",
+                            role: "Backend Developer",
+                            intro: "Architecting robust and scalable server-side solutions. Obsessed with data integrity, API performance, and building the unbreakable logic that powers SmartMess from the ground up.",
+                            img: "/anand_pic.jpeg",
+                            coverBg: "linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%)"
                         },
                         {
                             name: "Aryan Pandey",
-                            role: "UI/UX Designer",
-                            intro: "Dedicated to crafting intuitive interfaces and seamless interactions to make mess management effortless.",
-                            img: "/aryan_pic.png"
+                            role: "Frontend / Backend Developer",
+                            intro: "The ultimate full-stack problem solver. Blending pixel-perfect UI design with powerful backend algorithms to deliver a truly seamless, end-to-end mess management experience.",
+                            img: "/aryan_pic.png",
+                            coverBg: "var(--brand-gradient)"
                         },
                         {
-                            name: "Person 3",
-                            role: "Product Manager",
-                            intro: "Ensuring the product meets the highest standards and solves real-world operational challenges efficiently.",
-                            img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80"
+                            name: "Samar Shivam",
+                            role: "Frontend Developer",
+                            intro: "Breathing life into code with stunning visuals and buttery-smooth interactions. Dedicated to crafting an intuitive, modern, and engaging user interface that users love at first sight.",
+                            img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
+                            coverBg: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)"
                         }
                     ].map((person, i) => (
                         <div key={i} className="col-md-4 slide-up" style={{ animationDelay: `${0.1 * (i + 1)}s` }}>
-                            <div className="team-card glass-card p-4 h-100 transition-all text-center">
-                                <div className="team-img-wrapper mb-4 mx-auto position-relative shadow-sm" style={{ width: '160px', height: '160px', borderRadius: '50%', padding: '5px', background: 'var(--brand-gradient)', zIndex: 1 }}>
-                                    <img src={person.img} alt={person.name} className="img-fluid" style={{ borderRadius: '50%', width: '100%', height: '100%', objectFit: 'cover', border: '5px solid white' }} />
-                                </div>
-                                <h4 className="fw-bold mb-1">{person.name}</h4>
-                                <h6 className="text-gradient mb-3 fw-bold">{person.role}</h6>
-                                <p className="text-muted mb-0 small">{person.intro}</p>
-                                <div className="social-links d-flex justify-content-center gap-3 mt-4">
-                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{ width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="bi bi-twitter-x"></i></a>
-                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{ width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="bi bi-github"></i></a>
-                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{ width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="bi bi-linkedin"></i></a>
+                            <div className="team-card glass-card h-100 transition-all text-center position-relative overflow-hidden d-flex flex-column" style={{ padding: 0 }}>
+                                <div className="team-card-cover w-100" style={{ height: '120px', background: person.coverBg, opacity: 0.9 }}></div>
+                                <div className="p-4 pt-0 flex-grow-1 d-flex flex-column position-relative">
+                                    <div className="team-img-wrapper mx-auto position-relative shadow-lg" style={{ width: '140px', height: '140px', borderRadius: '50%', padding: '5px', background: 'white', zIndex: 2, marginTop: '-70px', marginBottom: '20px' }}>
+                                        <img src={person.img} alt={person.name} className="img-fluid" style={{ borderRadius: '50%', width: '100%', height: '100%', objectFit: 'cover', border: '4px solid white', backgroundColor: 'white' }} />
+                                    </div>
+                                    <h4 className="fw-bold mb-2">{person.name}</h4>
+                                    <div className="mb-3">
+                                        <span className="badge rounded-pill px-3 py-2 fw-bold shadow-sm" style={{ background: person.coverBg, color: 'white' }}>{person.role}</span>
+                                    </div>
+                                    <p className="text-muted small mb-4 flex-grow-1 px-2">{person.intro}</p>
+                                    <div className="social-links d-flex justify-content-center gap-3 mt-auto">
+                                        <a href="#" className="social-btn"><i className="bi bi-twitter-x"></i></a>
+                                        <a href="#" className="social-btn"><i className="bi bi-github"></i></a>
+                                        <a href="#" className="social-btn"><i className="bi bi-linkedin"></i></a>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -276,6 +314,114 @@ const LandingPage = () => {
                     <div className="d-flex justify-content-center gap-3">
                         <Link to="/register" className="btn btn-gradient btn-lg rounded-pill px-5 fw-bold">Register Now</Link>
                         <Link to="/login" className="btn btn-outline-dark btn-lg rounded-pill px-5 fw-bold">Watch Demo</Link>
+                    </div>
+                </div>
+            </section>
+
+            {/* CONTACT US SECTION */}
+            <section id="contact" className="contact-section container py-5 my-5">
+                <div className="text-center mb-5 fade-in">
+                    <h6 className="text-primary fw-bold text-uppercase ls-wide">Get in Touch</h6>
+                    <h2 className="section-title fw-bold">Contact <span className="text-gradient">Us</span></h2>
+                    <p className="text-muted mx-auto" style={{ maxWidth: '600px' }}>
+                        Have questions about SmartMess? Want to integrate it into your institution? Drop us a message and our team will get back to you shortly.
+                    </p>
+                </div>
+
+                <div className="row g-5 align-items-center justify-content-center">
+                    <div className="col-lg-5 slide-up" style={{ animationDelay: '0.2s' }}>
+                        <div className="glass-panel p-5 rounded-5 position-relative overflow-hidden h-100 d-flex flex-column justify-content-center">
+                            <div className="cta-bg-glow" style={{ opacity: 0.1, filter: 'blur(100px)' }}></div>
+                            <h3 className="fw-bold mb-4">Contact Information</h3>
+                            <p className="text-muted mb-5">Fill out the form and we will be in touch within 24 hours.</p>
+
+                            <div className="d-flex align-items-center mb-4">
+                                <div className="icon-circle bg-primary-soft text-primary me-3">
+                                    <i className="bi bi-geo-alt-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 className="fw-bold mb-0">Our Office</h6>
+                                    <span className="text-muted small">GNDEC, Ludhiana</span>
+                                </div>
+                            </div>
+                            <div className="d-flex align-items-center mb-4">
+                                <div className="icon-circle bg-success-soft text-success me-3">
+                                    <i className="bi bi-envelope-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 className="fw-bold mb-0">Email Us</h6>
+                                    <span className="text-muted small">aryan.pande01x@gmail.com</span>
+                                </div>
+                            </div>
+                            <div className="d-flex align-items-center mb-5">
+                                <div className="icon-circle text-info me-3" style={{ background: '#e0f7fa' }}>
+                                    <i className="bi bi-telephone-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <h6 className="fw-bold mb-0">Call Us</h6>
+                                    <span className="text-muted small">+91 70090 79926</span>
+                                </div>
+                            </div>
+
+                            <div className="social-links d-flex gap-3 mt-auto">
+                                <a href="#" className="social-btn"><i className="bi bi-twitter-x"></i></a>
+                                <a href="#" className="social-btn"><i className="bi bi-github"></i></a>
+                                <a href="#" className="social-btn"><i className="bi bi-linkedin"></i></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="col-lg-5 slide-up" style={{ animationDelay: '0.4s' }}>
+                        <div className="glass-card p-5 rounded-5 h-100 d-flex flex-column justify-content-center w-100">
+                            <h3 className="fw-bold mb-4">Send us a Message</h3>
+                            
+                            {formStatus === 'success' && (
+                                <div className="alert alert-success d-flex align-items-center py-2 mb-4 slide-up" role="alert">
+                                    <i className="bi bi-check-circle-fill me-2 fs-5"></i>
+                                    <div>Message sent successfully! We'll be in touch.</div>
+                                </div>
+                            )}
+                            
+                            {formStatus === 'error' && (
+                                <div className="alert alert-danger d-flex align-items-center py-2 mb-4 slide-up" role="alert">
+                                    <i className="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                                    <div>Oops! Something went wrong. Please try again.</div>
+                                </div>
+                            )}
+
+                            <form onSubmit={handleContactSubmit}>
+                                <input type="hidden" name="_subject" value="New Submission from SmartMess Contact Us!" />
+                                <input type="hidden" name="_captcha" value="false" />
+
+                                <div className="row g-2">
+                                    <div className="col-md-6">
+                                        <label className="form-label fw-bold small text-muted mb-1">First Name</label>
+                                        <input type="text" name="firstName" className="form-control bg-light border-0 shadow-sm px-3 py-2" required placeholder="John" />
+                                    </div>
+                                    <div className="col-md-6">
+                                        <label className="form-label fw-bold small text-muted mb-1">Last Name</label>
+                                        <input type="text" name="lastName" className="form-control bg-light border-0 shadow-sm px-3 py-2" required placeholder="Doe" />
+                                    </div>
+                                    <div className="col-12 mt-3">
+                                        <label className="form-label fw-bold small text-muted mb-1">Email Address</label>
+                                        <input type="email" name="email" className="form-control bg-light border-0 shadow-sm px-3 py-2" required placeholder="john@example.com" />
+                                    </div>
+                                    <div className="col-12 mt-3">
+                                        <label className="form-label fw-bold small text-muted mb-1">Your Query</label>
+                                        <textarea name="message" className="form-control bg-light border-0 shadow-sm px-3 py-2" rows="3" required placeholder="How can we help you?"></textarea>
+                                    </div>
+                                    <div className="col-12 mt-4">
+                                        <button type="submit" className="btn btn-gradient w-100 rounded-pill fw-bold shadow py-2" disabled={formStatus === 'submitting'}>
+                                            {formStatus === 'submitting' ? (
+                                                <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                            ) : (
+                                                <>Send Message <i className="bi bi-send ms-2"></i></>
+                                            )}
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -312,8 +458,8 @@ const LandingPage = () => {
                         <div className="col-lg-2 col-6">
                             <h6 className="fw-bold mb-4">Company</h6>
                             <ul className="list-unstyled text-muted small d-flex flex-column gap-2">
-                                <li><a>About Us</a></li>
-                                <li><a>Contact</a></li>
+                                <li><a href="#about" className="text-muted text-decoration-none">About Us</a></li>
+                                <li><a href="#contact" className="text-muted text-decoration-none">Contact</a></li>
                                 <li><a>Privacy Policy</a></li>
                                 <li><a>Terms of Service</a></li>
                             </ul>
