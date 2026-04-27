@@ -10,6 +10,10 @@ const StudentLayout = () => {
   const [hasUnread, setHasUnread] = useState(false);
 
   useEffect(() => {
+    document.title = "SmartMess | Student";
+  }, []);
+
+  useEffect(() => {
     const fetchNotices = async () => {
       try {
         const token = localStorage.getItem('token');
@@ -18,9 +22,9 @@ const StudentLayout = () => {
         const res = await axios.get(`${API_URL}/api/notices`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         const activeNotices = res.data?.notices || [];
-        
+
         // Find the most recently created notice (assuming the first one or we can sort)
         // Usually APIs return newest first, but let's be safe and use the first one's ID or createdAt.
         const latestNotice = activeNotices.length > 0 ? activeNotices[0] : null;
@@ -45,7 +49,7 @@ const StudentLayout = () => {
         console.error("Failed to fetch notices for badge:", err);
       }
     };
-    
+
     fetchNotices();
   }, [location.pathname]); // refresh on navigation
 

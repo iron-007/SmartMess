@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link, Outlet, useNavigate, useLocation } from "react-router-dom";
 import "../App.css";
 
@@ -7,6 +7,10 @@ const ButlerLayout = () => {
   const location = useLocation();
   const userStr = localStorage.getItem("user");
   const user = userStr ? JSON.parse(userStr) : null;
+
+  useEffect(() => {
+    document.title = "SmartMess | Butler";
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");

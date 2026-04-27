@@ -111,6 +111,9 @@ function Register() {
           {/* RIGHT: Registration Form */}
           <div className="col-md-8 p-5">
             <div className="mb-4 text-center text-md-start">
+              <button onClick={() => navigate("/")} className="btn btn-link text-decoration-none p-0 mb-3 text-secondary d-flex align-items-center">
+                <i className="bi bi-arrow-left me-2"></i> Back to Home
+              </button>
               <h3 className="fw-bold text-dark mb-1">Create an Account</h3>
               <p className="text-muted small">Fill in the details below to get started</p>
             </div>

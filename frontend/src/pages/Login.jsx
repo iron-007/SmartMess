@@ -92,6 +92,9 @@ function Login() {
           <div className="col-md-7 d-flex flex-column justify-content-center p-5">
             <div className="w-100 px-lg-4">
               <div className="mb-4 text-center text-md-start">
+                <button onClick={() => navigate("/")} className="btn btn-link text-decoration-none p-0 mb-3 text-secondary d-flex align-items-center">
+                  <i className="bi bi-arrow-left me-2"></i> Back to Home
+                </button>
                 <h3 className="fw-bold text-dark mb-1">Welcome Back</h3>
                 <p className="text-muted small">Sign in to your account to continue</p>
               </div>
