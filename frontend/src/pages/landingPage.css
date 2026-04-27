@@ -16,6 +16,37 @@
     color: #1a1a1a;
     background-color: #fffcfb;
     overflow-x: hidden;
+    position: relative;
+}
+
+.landing-container::before {
+    content: '';
+    position: absolute;
+    top: -5%;
+    right: -5%;
+    width: 600px;
+    height: 600px;
+    background: var(--brand-primary);
+    filter: blur(200px);
+    opacity: 0.08;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 50%;
+}
+
+.landing-container::after {
+    content: '';
+    position: absolute;
+    top: 40%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: var(--brand-secondary);
+    filter: blur(200px);
+    opacity: 0.08;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 50%;
 }
 
 /* Utils */
@@ -39,16 +70,27 @@
 }
 
 .glass-card {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
     border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
 }
 
 .glass-panel {
-    background: white;
-    border: 1px solid #eef0f4;
-    box-shadow: var(--shadow-md);
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s ease;
+    transform-style: preserve-3d;
+}
+
+.glass-panel:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.12);
 }
 
 /* Navbar */
@@ -105,15 +147,21 @@
 
 .hero-image-container {
     position: relative;
+    perspective: 1200px;
+}
+
+.main-img {
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.8s ease;
+    transform-style: preserve-3d;
+}
+
+.main-img:hover {
+    transform: rotateY(-12deg) rotateX(6deg) scale(1.05);
+    box-shadow: -20px 20px 40px rgba(0, 0, 0, 0.15) !important;
 }
 
 .main-img img {
     width: 100%;
-    transition: transform 0.5s ease;
-}
-
-.main-img:hover img {
-    transform: scale(1.02);
 }
 
 .floating-card {
@@ -157,14 +205,17 @@
 
 /* Features */
 .feature-card {
-    border: 1px solid #eee;
-    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.5s ease, border-color 0.3s ease;
+    transform-style: preserve-3d;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(15px);
 }
 
 .feature-card:hover {
-    transform: translateY(-10px);
+    transform: translateY(-15px) rotateX(5deg) rotateY(-5deg);
     border-color: var(--brand-primary);
-    box-shadow: var(--shadow-md);
+    box-shadow: 15px 15px 30px rgba(0, 0, 0, 0.08), -10px -10px 20px rgba(255, 255, 255, 0.8);
 }
 
 .feature-icon {
@@ -227,10 +278,18 @@
     background: rgba(255, 255, 255, 0.05);
 }
 
-/* CTA */
-.cta-section .glass-panel {
-    background: white;
+.role-preview-container {
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.8s ease;
+    perspective: 1200px;
+    transform-style: preserve-3d;
 }
+
+.role-preview-container:hover {
+    transform: rotateY(-8deg) rotateX(4deg) scale(1.03);
+    box-shadow: -15px 20px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* CTA */
 
 .cta-bg-glow {
     position: absolute;
@@ -250,25 +309,28 @@
 
     0%,
     100% {
-        transform: translateY(0);
+        transform: translateY(0) translateZ(10px);
     }
 
     50% {
-        transform: translateY(-20px);
+        transform: translateY(-20px) translateZ(30px);
     }
 }
 
 
 /* Team */
 .team-card {
-    border: 1px solid #eee;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform-style: preserve-3d;
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(15px);
 }
 
 .team-card:hover {
-    transform: translateY(-15px);
+    transform: translateY(-15px) scale(1.02) rotateX(4deg);
     border-color: var(--brand-primary);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12), 0 0 20px rgba(255, 81, 47, 0.1);
 }
 
 .team-card:hover .team-img-wrapper {

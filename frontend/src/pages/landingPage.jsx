@@ -234,10 +234,10 @@ const LandingPage = () => {
                             img: "https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80"
                         },
                         {
-                            name: "Person 2",
+                            name: "Aryan Pandey",
                             role: "UI/UX Designer",
                             intro: "Dedicated to crafting intuitive interfaces and seamless interactions to make mess management effortless.",
-                            img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80"
+                            img: "/aryan_pic.png"
                         },
                         {
                             name: "Person 3",
@@ -255,9 +255,9 @@ const LandingPage = () => {
                                 <h6 className="text-gradient mb-3 fw-bold">{person.role}</h6>
                                 <p className="text-muted mb-0 small">{person.intro}</p>
                                 <div className="social-links d-flex justify-content-center gap-3 mt-4">
-                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><i className="bi bi-twitter-x"></i></a>
-                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><i className="bi bi-github"></i></a>
-                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}><i className="bi bi-linkedin"></i></a>
+                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{ width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="bi bi-twitter-x"></i></a>
+                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{ width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="bi bi-github"></i></a>
+                                    <a href="#" className="text-muted btn btn-light rounded-circle shadow-sm" style={{ width: '35px', height: '35px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><i className="bi bi-linkedin"></i></a>
                                 </div>
                             </div>
                         </div>
