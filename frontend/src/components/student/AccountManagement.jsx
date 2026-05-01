@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 
 const AccountManagement = ({ user, onUpdate }) => {
   const [loading, setLoading] = useState(false);
@@ -10,14 +10,9 @@ const AccountManagement = ({ user, onUpdate }) => {
     setLoading(true);
     setMessage(null);
     try {
-      const token = localStorage.getItem('token');
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      
-      const response = await axios.post(`${API_URL}/api/students/${user._id || user.id}/request-account-change`, {
+      const response = await api.post(`/api/students/${user._id || user.id}/request-account-change`, {
         requestType: type,
         effectiveDate
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
       });
       
       setMessage({ type: 'success', text: response.data.message });

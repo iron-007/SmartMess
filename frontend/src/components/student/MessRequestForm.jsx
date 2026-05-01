@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../utils/api';
 import moment from 'moment-timezone';
 
 const MessRequestForm = ({ onUpdate, timings }) => {
@@ -15,18 +15,13 @@ const MessRequestForm = ({ onUpdate, timings }) => {
   // Auto-pickup first available meal from server
   useEffect(() => {
     const fetchNextMeal = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        
-        // Include targetDate in query if it exists
-        const url = formData.date 
-          ? `${API_URL}/api/students/me/next-available-meal?targetDate=${formData.date}`
-          : `${API_URL}/api/students/me/next-available-meal`;
+    try {
+      // Include targetDate in query if it exists
+      const url = formData.date 
+        ? `/api/students/me/next-available-meal?targetDate=${formData.date}`
+        : `/api/students/me/next-available-meal`;
 
-        const response = await axios.get(url, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      const response = await api.get(url);
         
         if (response.data.success) {
           setFormData(prev => ({
@@ -49,11 +44,7 @@ const MessRequestForm = ({ onUpdate, timings }) => {
     setMessage(null);
 
     try {
-      const token = localStorage.getItem('token');
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const response = await axios.post(`${API_URL}/api/students/me/mess-request`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.post(`/api/students/me/mess-request`, formData);
       setMessage({ type: 'success', text: response.data.message });
       onUpdate(); // Refresh data
     } catch (error) {

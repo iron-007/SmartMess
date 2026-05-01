@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../utils/api";
 
 const createEmptyDay = () => ({
   breakfast: { item: "", extra: "" },
@@ -40,16 +41,11 @@ const MenuManager = () => {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/admin/menu", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          if (data.menu) setMenu(data.menu);
-          if (data.timings) setTimings(data.timings);
-          if (data.status) setStatus(data.status);
-        }
+        const response = await api.get("/api/admin/menu");
+        const data = response.data;
+        if (data.menu) setMenu(data.menu);
+        if (data.timings) setTimings(data.timings);
+        if (data.status) setStatus(data.status);
       } catch (error) {
         console.error("Failed to fetch menu data:", error);
       }
@@ -78,23 +74,11 @@ const MenuManager = () => {
     setStatus(newStatus);
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
       const payload = { status: newStatus, timings, menu };
-      
-      const response = await fetch("http://localhost:5000/api/admin/menu", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(payload)
-      });
+      const response = await api.put("/api/admin/menu", payload);
 
-      if (response.ok) {
+      if (response.status === 200) {
         alert(`Weekly menu saved as ${newStatus}!`);
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.message || "Failed to save menu"}`);
       }
     } catch (error) {
       console.error("Error saving menu:", error);

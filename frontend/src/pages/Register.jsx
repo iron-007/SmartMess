@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import api from "../utils/api";
 
 function Register() {
   const navigate = useNavigate();
@@ -67,14 +68,9 @@ function Register() {
       payload.position = form.position;
     }
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    fetch(`${API_URL}/api/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    api.post('/api/auth/register', payload)
+      .then((response) => {
+        const data = response.data;
         setLoading(false);
         if (data.message === "User registered successfully") {
           setServerMessage({ type: "success", text: "Registration successful! Redirecting..." });
@@ -86,7 +82,8 @@ function Register() {
       .catch((err) => {
         setLoading(false);
         console.error(err);
-        setServerMessage({ type: "danger", text: "Registration failed. Please try again." });
+        const errorMessage = err.response?.data?.message || "Registration failed. Please try again.";
+        setServerMessage({ type: "danger", text: errorMessage });
       });
   };
 

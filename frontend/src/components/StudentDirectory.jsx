@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import api from '../utils/api';
 import StudentDetailModal from './StudentDetailModal';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -18,14 +19,9 @@ const StudentDirectory = () => {
   const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch('http://localhost:5000/api/admin/students', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/api/admin/students');
       
-      if (!response.ok) throw new Error('Failed to fetch student data.');
-      
-      const data = await response.json();
+      const data = response.data;
       
       if (data.success) {
         setStudents(data.students);
@@ -73,13 +69,8 @@ const StudentDirectory = () => {
     if (window.confirm("Trigger the Midnight Ledger? This will lock in today's meal prices for all active students.")) {
       setIsLedgerRunning(true);
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch('http://localhost:5000/api/admin/trigger-billing', {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        const data = await response.json();
+        const response = await api.post('/api/admin/trigger-billing');
+        const data = response.data;
         if (data.success) {
           // Instantly refresh the grid to show the new numbers!
           await fetchStudents(); 

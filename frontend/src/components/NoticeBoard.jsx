@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../utils/api";
 
 const NoticeBoard = () => {
   const [notices, setNotices] = useState([]);
@@ -28,16 +29,8 @@ const NoticeBoard = () => {
   }, []);
 
   useEffect(() => {
-    const fetchNotices = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/admin/notices", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setNotices(data.notices || []);
-        }
+        const response = await api.get("/api/admin/notices");
+        setNotices(response.data.notices || []);
       } catch (error) {
         console.error("Failed to fetch notices:", error);
       }
@@ -83,39 +76,27 @@ const NoticeBoard = () => {
     formData.append("validUntil", validUntil);
 
     try {
-      const token = localStorage.getItem("token");
       const url = editingId 
-        ? `http://localhost:5000/api/admin/notices/${editingId}`
-        : "http://localhost:5000/api/admin/notices";
-      const method = editingId ? "PUT" : "POST";
+        ? `/api/admin/notices/${editingId}`
+        : "/api/admin/notices";
+      const method = editingId ? "put" : "post";
       
-      const response = await fetch(url, {
+      const response = await api({
         method,
+        url,
+        data: formData,
         headers: {
-          Authorization: `Bearer ${token}`
-        },
-        body: formData
+          'Content-Type': 'multipart/form-data'
+        }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (editingId) {
-          setNotices(notices.map(n => n._id === editingId ? data.notice : n));
-        } else {
-          setNotices([data.notice, ...notices]); 
-        }
-        resetForm();
+      const data = response.data;
+      if (editingId) {
+        setNotices(notices.map(n => n._id === editingId ? data.notice : n));
       } else {
-        let errMessage = "Failed to save notice";
-        try {
-          const errData = await response.json();
-          errMessage = errData.message || errMessage;
-        } catch (parseError) {
-          // Handle cases where the backend returns an HTML error page (like 404 or 500)
-          errMessage = `Server error (${response.status}): The endpoint might be missing or crashed.`;
-        }
-        alert(errMessage);
+        setNotices([data.notice, ...notices]); 
       }
+      resetForm();
     } catch (error) {
       console.error("Error saving notice:", error);
       alert(`Error: ${error.message === "Failed to fetch" ? "Network error (CORS or server restarted)." : error.message}`);
@@ -136,15 +117,10 @@ const NoticeBoard = () => {
   const handleDelete = async (_id) => {
     if (!window.confirm("Are you sure you want to delete this notice?")) return;
 
-    const token = localStorage.getItem("token");
-    const response = await fetch(`http://localhost:5000/api/admin/notices/${_id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
-    });
-
-    if (response.ok) {
+    try {
+      await api.delete(`/api/admin/notices/${_id}`);
       setNotices(notices.filter(notice => notice._id !== _id));
-    } else {
+    } catch (error) {
       alert("Failed to delete notice");
     }
   };
@@ -343,7 +319,7 @@ const NoticeBoard = () => {
                           
                           {notice.attachmentUrl && (
                             <div className="mt-3" onClick={(e) => e.stopPropagation()}>
-                              <a href={`http://localhost:5000/${notice.attachmentUrl}`} target="_blank" rel="noopener noreferrer" 
+                              <a href={`${api.defaults.baseURL}/${notice.attachmentUrl}`} target="_blank" rel="noopener noreferrer" 
                                  className="btn btn-light btn-sm border text-dark fw-medium rounded-pill shadow-sm px-4">
                                 <i className="bi bi-file-earmark-text text-primary me-2"></i> View Attached Document
                               </a>

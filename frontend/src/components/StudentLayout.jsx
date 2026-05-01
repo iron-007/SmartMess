@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import "../App.css";
 
 const StudentLayout = () => {
@@ -16,12 +16,7 @@ const StudentLayout = () => {
   useEffect(() => {
     const fetchNotices = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) return;
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-        const res = await axios.get(`${API_URL}/api/notices`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res = await api.get('/api/notices');
 
         const activeNotices = res.data?.notices || [];
 

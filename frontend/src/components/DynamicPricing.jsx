@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import api from "../utils/api";
 
 const DynamicPricing = () => {
   const [pricing, setPricing] = useState({
@@ -19,12 +20,8 @@ const DynamicPricing = () => {
   useEffect(() => {
     const fetchPricing = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:5000/api/admin/pricing", {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (response.ok) {
-          const data = await response.json();
+        const response = await api.get("/api/admin/pricing");
+        const data = response.data;
           if (data.pricing) {
             setPricing({
               ...pricing, // Preserve defaults for new fields like extraPrices if missing
@@ -52,18 +49,10 @@ const DynamicPricing = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:5000/api/admin/pricing", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(pricing)
-      });
+      const response = await api.put("/api/admin/pricing", pricing);
 
-      if (response.ok) {
-        const data = await response.json();
+      if (response.status === 200) {
+        const data = response.data;
         if (data.auditLog) setAuditLog(data.auditLog);
         alert("Dynamic pricing and rules updated successfully!");
       } else {

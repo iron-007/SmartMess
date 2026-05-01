@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../utils/api';
 
 const AccountApproval = () => {
   const [requests, setRequests] = useState([]);
@@ -11,22 +12,15 @@ const AccountApproval = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      
       const [accRes, dailyRes, historyRes] = await Promise.all([
-        fetch(`${API_URL}/api/butler/approvals`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_URL}/api/butler/daily-requests`, { headers: { Authorization: `Bearer ${token}` } }),
-        fetch(`${API_URL}/api/butler/daily-requests/history`, { headers: { Authorization: `Bearer ${token}` } })
+        api.get('/api/butler/approvals'),
+        api.get('/api/butler/daily-requests'),
+        api.get('/api/butler/daily-requests/history')
       ]);
       
-      const accData = await accRes.json();
-      const dailyData = await dailyRes.json();
-      const historyData = await historyRes.json();
-      
-      if (accData.success) setRequests(accData.users);
-      if (dailyData.success) setDailyRequests(dailyData.requests);
-      if (historyData.success) setHistory(historyData.requests);
+      if (accRes.data.success) setRequests(accRes.data.users);
+      if (dailyRes.data.success) setDailyRequests(dailyRes.data.requests);
+      if (historyRes.data.success) setHistory(historyRes.data.requests);
     } catch (error) {
       console.error("Failed to fetch requests:", error);
     } finally {
@@ -41,13 +35,8 @@ const AccountApproval = () => {
   const handleApproveAccount = async (id) => {
     if (!window.confirm(`Approve this permanent account change?`)) return;
     try {
-      const token = localStorage.getItem("token");
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${API_URL}/api/butler/approvals/${id}/approve`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if ((await response.json()).success) {
+      const response = await api.put(`/api/butler/approvals/${id}/approve`);
+      if (response.data.success) {
         setRequests(requests.filter(req => req._id !== id));
       }
     } catch (error) {
@@ -58,19 +47,16 @@ const AccountApproval = () => {
   const handleProcessDaily = async (id, action) => {
     if (!window.confirm(`Are you sure you want to ${action.toLowerCase()} this request?`)) return;
     try {
-      const token = localStorage.getItem("token");
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-      
       const url = action === 'APPROVE' 
-        ? `${API_URL}/api/butler/daily-requests/${id}/approve`
-        : `${API_URL}/api/butler/daily-requests/${id}`;
+        ? `/api/butler/daily-requests/${id}/approve`
+        : `/api/butler/daily-requests/${id}`;
         
-      const response = await fetch(url, {
+      const response = await api({
         method: action === 'APPROVE' ? 'PUT' : 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
+        url: url
       });
       
-      if ((await response.json()).success) {
+      if (response.data.success) {
         setDailyRequests(dailyRequests.filter(req => req._id !== id));
         fetchData(); // Refresh history
       }

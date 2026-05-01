@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import DuesSection from '../components/student/DuesSection';
 import ConsumptionGrid from '../components/student/ConsumptionGrid';
 import TodayMenu from '../components/student/TodayMenu';
@@ -22,18 +22,14 @@ const StudentDashboard = () => {
 
   const fetchData = useCallback(async () => {
     try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
       // Use allSettled to handle partial failures
       const results = await Promise.allSettled([
-        axios.get(`${API_URL}/api/students/me/dues`, { headers }),
-        axios.get(`${API_URL}/api/students/me/consumption/monthly`, { headers }),
-        axios.get(`${API_URL}/api/menu/today`, { headers }),
-        axios.get(`${API_URL}/api/menu`, { headers }),
-        axios.get(`${API_URL}/api/notices`, { headers }),
-        axios.get(`${API_URL}/api/auth/me`, { headers })
+        api.get('/api/students/me/dues'),
+        api.get('/api/students/me/consumption/monthly'),
+        api.get('/api/menu/today'),
+        api.get('/api/menu'),
+        api.get('/api/notices'),
+        api.get('/api/auth/me')
       ]);
 
       const [duesRes, consumptionRes, menuRes, weeklyMenuRes, noticesRes, userRes] = results;

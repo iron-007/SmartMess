@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 function Login() {
   const navigate = useNavigate();
@@ -33,16 +34,9 @@ function Login() {
     if (!validate()) return;
     setLoading(true);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-    fetch(`${API_URL}/api/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(form),
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    api.post('/api/auth/login', form)
+      .then((response) => {
+        const data = response.data;
         setLoading(false);
         if (data.token) {
           localStorage.setItem('token', data.token);
@@ -66,7 +60,8 @@ function Login() {
       .catch((err) => {
         setLoading(false);
         console.error(err);
-        setServerMessage({ type: "danger", text: 'Login failed. Please try again later.' });
+        const errorMessage = err.response?.data?.message || 'Login failed. Please try again later.';
+        setServerMessage({ type: "danger", text: errorMessage });
       });
   };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import api from '../utils/api';
 
 const StudentDetailModal = ({ student, onClose }) => {
   const [attendance, setAttendance] = useState([]);
@@ -18,11 +19,8 @@ const StudentDetailModal = ({ student, onClose }) => {
   useEffect(() => {
     const fetchAttendance = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:5000/api/admin/students/${student._id}/attendance`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await response.json();
+        const response = await api.get(`/api/admin/students/${student._id}/attendance`);
+        const data = response.data;
         if (data.success) {
           setAttendance(data.attendance);
         }
@@ -42,11 +40,8 @@ const StudentDetailModal = ({ student, onClose }) => {
     const fetchConsumption = async () => {
       setFetchingConsumption(true);
       try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(`http://localhost:5000/api/admin/students/${student._id}/consumption`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const data = await response.json();
+        const response = await api.get(`/api/admin/students/${student._id}/consumption`);
+        const data = response.data;
         if (data.success) {
           setConsumption(data.consumption);
         }
@@ -94,16 +89,8 @@ const StudentDetailModal = ({ student, onClose }) => {
   const handleUpdate = async () => {
     setUpdating(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/admin/students/${student._id}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}` 
-        },
-        body: JSON.stringify(editForm)
-      });
-      const data = await response.json();
+      const response = await api.put(`/api/admin/students/${student._id}`, editForm);
+      const data = response.data;
       if (data.success) {
         alert("Student data updated successfully!");
         setIsEditing(false);
