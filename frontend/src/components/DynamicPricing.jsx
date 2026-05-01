@@ -22,14 +22,13 @@ const DynamicPricing = () => {
       try {
         const response = await api.get("/api/admin/pricing");
         const data = response.data;
-          if (data.pricing) {
-            setPricing({
-              ...pricing, // Preserve defaults for new fields like extraPrices if missing
-              ...data.pricing
-            });
-          }
-          if (data.auditLog) setAuditLog(data.auditLog);
+        if (data.pricing) {
+          setPricing({
+            ...pricing, // Preserve defaults for new fields like extraPrices if missing
+            ...data.pricing
+          });
         }
+        if (data.auditLog) setAuditLog(data.auditLog);
       } catch (error) {
         console.error("Failed to fetch pricing data:", error);
       }
@@ -165,7 +164,7 @@ const DynamicPricing = () => {
                         ))}
                       </tbody>
                     </table>
-                </div>
+                  </div>
 
 
                   {/* EXTRA ITEM PRICING SECTION */}

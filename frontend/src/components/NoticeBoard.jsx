@@ -29,6 +29,8 @@ const NoticeBoard = () => {
   }, []);
 
   useEffect(() => {
+    const fetchNotices = async () => {
+      try {
         const response = await api.get("/api/admin/notices");
         setNotices(response.data.notices || []);
       } catch (error) {
