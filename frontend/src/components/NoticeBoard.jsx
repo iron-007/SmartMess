@@ -156,18 +156,21 @@ const NoticeBoard = () => {
     <div className="container-fluid py-2">
 
       {/* PAGE HEADER */}
-      <div className="mb-4">
-        <h2 className="nav-title fw-bold m-0">
-          <i className="bi bi-megaphone-fill me-2"></i>Notice Board
-        </h2>
-        <p className="text-muted small mt-1 mb-0">Broadcast announcements, rules, and updates to all students</p>
+      {/* PAGE HEADER */}
+      <div className="mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+        <div>
+          <h2 className="nav-title fw-bold m-0 text-gradient">
+            <i className="bi bi-megaphone-fill me-2"></i>Notice Board
+          </h2>
+          <p className="text-muted small mt-1 mb-0">Broadcast announcements, rules, and updates to all students</p>
+        </div>
       </div>
 
       <div className="row g-4">
 
         {/* LEFT COLUMN: Form */}
         <div className="col-lg-5">
-          <div className="card shadow-sm border-0 rounded-4 overflow-hidden sticky-top" style={{ top: '90px', zIndex: 1 }}>
+          <div className="card shadow-sm border-0 rounded-4 overflow-hidden mb-4 mb-lg-0 notice-form-sticky">
 
             {/* Dark Header */}
             <div className="bg-sidebar-dark p-3 px-4">
@@ -183,7 +186,7 @@ const NoticeBoard = () => {
                   <label className="form-label fw-bold text-secondary small">Notice Title</label>
                   <input
                     type="text"
-                    className="form-control modern-input"
+                    className="form-control modern-input w-100"
                     placeholder="E.g., Mess closed for maintenance..."
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
@@ -238,11 +241,11 @@ const NoticeBoard = () => {
                 </div>
 
                 <div className="d-flex flex-column gap-2 mt-4">
-                  <button type="submit" className="btn btn-gradient btn-lg w-100 fw-bold rounded-pill shadow-sm">
+                  <button type="submit" className="btn btn-gradient py-2 px-4 fw-bold rounded-pill shadow-sm">
                     <i className="bi bi-send-fill me-2"></i> {editingId ? "Update Notice" : "Publish Announcement"}
                   </button>
                   {editingId && (
-                    <button type="button" className="btn btn-light btn-lg fw-bold rounded-pill border text-muted hover-shadow" onClick={resetForm}>
+                    <button type="button" className="btn btn-light py-2 px-4 fw-bold rounded-pill border text-muted hover-shadow" onClick={resetForm}>
                       Cancel Editing
                     </button>
                   )}
@@ -256,23 +259,23 @@ const NoticeBoard = () => {
         <div className="col-lg-7">
 
           {/* Feed Controls */}
-          <div className="d-flex justify-content-between align-items-center mb-4 bg-white p-3 rounded-4 shadow-sm border border-light">
+          <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 bg-white p-3 rounded-4 shadow-sm border border-light gap-3">
             <h5 className="fw-bold text-dark m-0 d-flex align-items-center">
               <i className={`bi ${activeTab === 'active' ? 'bi-broadcast text-success' : 'bi-archive text-secondary'} me-2`}></i>
               {activeTab === 'active' ? 'Live Announcements' : 'Notice Archive'}
             </h5>
 
-            <div className="bg-light p-1 rounded-pill border">
+            <div className="bg-light p-1 rounded-pill border d-flex">
               <button
                 type="button"
-                className={`btn btn-sm rounded-pill px-4 fw-semibold ${activeTab === 'active' ? 'btn-white shadow-sm text-dark bg-white' : 'btn-transparent text-muted border-0'}`}
+                className={`btn btn-sm rounded-pill px-4 fw-semibold flex-fill ${activeTab === 'active' ? 'btn-white shadow-sm text-dark bg-white' : 'btn-transparent text-muted border-0'}`}
                 onClick={() => setActiveTab('active')}
               >
                 Active
               </button>
               <button
                 type="button"
-                className={`btn btn-sm rounded-pill px-4 fw-semibold ${activeTab === 'history' ? 'btn-white shadow-sm text-dark bg-white' : 'btn-transparent text-muted border-0'}`}
+                className={`btn btn-sm rounded-pill px-4 fw-semibold flex-fill ${activeTab === 'history' ? 'btn-white shadow-sm text-dark bg-white' : 'btn-transparent text-muted border-0'}`}
                 onClick={() => setActiveTab('history')}
               >
                 History
@@ -303,7 +306,7 @@ const NoticeBoard = () => {
                       <div className="card-body p-4 w-100" onClick={() => toggleExpand(notice._id)} style={{ cursor: 'pointer' }}>
 
                         {/* Notice Header */}
-                        <div className="d-flex justify-content-between align-items-start mb-2">
+                        <div className="d-flex flex-column flex-sm-row justify-content-between align-items-start mb-2 gap-3">
                           <div className="d-flex align-items-center">
                             {isHighPriority && <i className="bi bi-exclamation-circle-fill text-danger me-2"></i>}
                             <h5 className="fw-bold text-dark m-0">
@@ -312,7 +315,8 @@ const NoticeBoard = () => {
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="d-flex gap-2" onClick={(e) => e.stopPropagation()}>
+                          <div className="d-flex gap-2 w-100 w-sm-auto" onClick={(e) => e.stopPropagation()}>
+
                             {canEdit(notice.createdAt || notice.date) && (
                               <button className="btn btn-sm btn-light text-primary border rounded-pill px-3 fw-medium hover-shadow" onClick={() => handleEdit(notice)}>
                                 <i className="bi bi-pencil-square me-1"></i> Edit

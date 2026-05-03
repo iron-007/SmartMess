@@ -169,3 +169,12 @@ h1, h2, h3, h4, h5, h6, .nav-title, .brand-text {
 .ls-1 {
   letter-spacing: 1px;
 }
+
+/* Notice Form Sticky only on large screens */
+@media (min-width: 992px) {
+  .notice-form-sticky {
+    position: sticky;
+    top: 100px;
+    z-index: 10;
+  }
+}

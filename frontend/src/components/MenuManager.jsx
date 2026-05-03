@@ -150,7 +150,7 @@ const MenuManager = () => {
           <h5 className="fw-bold m-0 text-white">
             <i className="bi bi-grid-3x3-gap me-2 opacity-75"></i>Weekly Planner
           </h5>
-          <div className="d-flex align-items-center gap-2">
+          <div className="d-flex align-items-center gap-2 d-lg-none">
             <span className="text-white small fw-medium">Select Meal:</span>
             <select 
               className="form-select form-select-sm fw-bold border-0" 
@@ -167,33 +167,51 @@ const MenuManager = () => {
 
         <div className="card-body p-4 bg-transparent">
           <form>
-            <div className="d-flex flex-column gap-3">
+            <div className="d-flex flex-column gap-4">
               {Object.keys(menu).map((day) => (
-                <div key={day} className="bg-white p-3 rounded-4 border shadow-sm">
-                  <h6 className="fw-bold mb-3" style={{ color: 'var(--brand-primary)' }}>{day}</h6>
-                  <div className="d-flex flex-column gap-3">
-                    <div className="input-group shadow-sm rounded-3">
-                      <span className="input-group-text bg-white border-end-0 text-muted"><i className="bi bi-egg-fried"></i></span>
-                      <input
-                        type="text"
-                        className="form-control modern-input fw-bold border-start-0 ps-0 bg-white"
-                        placeholder={`Main ${selectedMeal}...`}
-                        value={menu[day][selectedMeal].item}
-                        onChange={(e) => handleMenuChange(day, selectedMeal, 'item', e.target.value)}
-                      />
-                    </div>
-                    <div className="input-group rounded-3">
-                      <span className="input-group-text bg-light border-0 ps-3 pe-2 text-muted">
-                        <i className="bi bi-plus-circle-dotted"></i>
-                      </span>
-                      <input
-                        type="text"
-                        className="form-control modern-input text-muted bg-light border-0"
-                        placeholder="Extras / Add-ons..."
-                        value={menu[day][selectedMeal].extra}
-                        onChange={(e) => handleMenuChange(day, selectedMeal, 'extra', e.target.value)}
-                      />
-                    </div>
+                <div key={day} className="bg-white p-4 rounded-4 border shadow-sm">
+                  <h6 className="fw-bold mb-3 border-bottom pb-2" style={{ color: 'var(--brand-primary)' }}>
+                    <i className="bi bi-calendar-check me-2"></i>{day}
+                  </h6>
+                  
+                  <div className="row g-4">
+                    {MEALS.map((meal) => (
+                      <div 
+                        key={meal.key} 
+                        className={`col-lg-4 ${selectedMeal === meal.key ? 'd-block' : 'd-none d-lg-block'}`}
+                      >
+                        <div className="d-flex flex-column gap-2">
+                          <label className="fw-bold small text-muted d-flex align-items-center gap-2">
+                            <i className={`bi ${meal.icon}`}></i>
+                            {meal.display}
+                          </label>
+                          <div className="input-group shadow-sm rounded-3">
+                            <span className="input-group-text bg-white border-end-0 text-muted" style={{ padding: '0.4rem 0.75rem' }}>
+                              <i className="bi bi-egg-fried"></i>
+                            </span>
+                            <input
+                              type="text"
+                              className="form-control modern-input fw-bold border-start-0 ps-0 bg-white"
+                              placeholder={`Main Item...`}
+                              value={menu[day][meal.key].item}
+                              onChange={(e) => handleMenuChange(day, meal.key, 'item', e.target.value)}
+                            />
+                          </div>
+                          <div className="input-group rounded-3">
+                            <span className="input-group-text bg-light border-0 ps-3 pe-2 text-muted" style={{ padding: '0.4rem 0.75rem' }}>
+                              <i className="bi bi-plus-circle-dotted"></i>
+                            </span>
+                            <input
+                              type="text"
+                              className="form-control modern-input text-muted bg-light border-0"
+                              placeholder="Extras..."
+                              value={menu[day][meal.key].extra}
+                              onChange={(e) => handleMenuChange(day, meal.key, 'extra', e.target.value)}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
