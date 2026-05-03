@@ -14,7 +14,9 @@ const menuRoutes = require('./routes/menuRoutes');
 
 // NEW: Import cron and your admin controller for the automation
 const cron = require('node-cron');
+const moment = require('moment-timezone');
 const adminController = require('./controllers/adminController');
+
 
 // Connect to database
 connectDB();
@@ -53,7 +55,7 @@ app.get('/api/ping', (req, res) => {
 cron.schedule('59 23 * * *', async () => {
   console.log('--- [SYSTEM] Triggering Automated Midnight Ledger (IST) ---');
   try {
-    await adminController.processDailyBilling(); 
+    await adminController.processDailyBilling();
   } catch (err) {
     console.error('--- [SYSTEM] Midnight Ledger Automation Failed:', err);
   }
@@ -66,7 +68,7 @@ cron.schedule('59 23 * * *', async () => {
 cron.schedule('30 23 * * *', async () => {
   const now = moment().tz("Asia/Kolkata");
   const isLastDay = now.date() === now.daysInMonth();
-  
+
   if (isLastDay) {
     await adminController.processMonthEndSettlement();
   }
@@ -78,28 +80,16 @@ cron.schedule('30 23 * * *', async () => {
 // --- AUTOMATION: Monthly Fine (1st day at 12:00 AM IST) ---
 cron.schedule('0 0 1 * *', async () => {
   console.log('--- [SYSTEM] Triggering Automated Monthly Late Fine Check (IST) ---');
-  await adminController.processMonthlyFine(); 
+  await adminController.processMonthlyFine();
 }, {
   scheduled: true,
   timezone: "Asia/Kolkata"
 });
 
 
-// --- AUTOMATION: Self-Ping (Every 14 mins to keep server awake) ---
-cron.schedule('*/14 * * * *', () => {
-  const backendUrl = process.env.BACKEND_URL;
-  if (!backendUrl || backendUrl.includes('your-app-name')) {
-    console.log('--- [SYSTEM] Self-ping skipped: BACKEND_URL not configured properly in .env ---');
-    return;
-  }
-
-  console.log(`--- [SYSTEM] Performing Self-Ping to ${backendUrl}/api/ping ---`);
-  https.get(`${backendUrl}/api/ping`, (res) => {
-    console.log(`--- [SYSTEM] Self-ping response: ${res.statusCode} ---`);
-  }).on('error', (err) => {
-    console.error('--- [SYSTEM] Self-ping failed:', err.message);
-  });
-});
+setInterval(() => {
+  https.get(process.env.BACKEND_URL + '/api/ping').end();
+}, 13 * 60 * 1000);
 
 
 const PORT = process.env.PORT || 5000;
