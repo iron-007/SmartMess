@@ -4,6 +4,11 @@ import "./landingPage.css";
 
 const LandingPage = () => {
     const [formStatus, setFormStatus] = useState(null);
+    const [activeFaq, setActiveFaq] = useState(null);
+
+    const toggleFaq = (index) => {
+        setActiveFaq(activeFaq === index ? null : index);
+    };
 
     const handleContactSubmit = async (e) => {
         e.preventDefault();
@@ -327,8 +332,72 @@ const LandingPage = () => {
                 </div>
             </section>
 
+            {/* FAQ SECTION */}
+            <section id="faq" className="faq-section container py-3 mt-5 mb-0">
+                <div className="text-center mb-5 fade-in">
+                    <h6 className="text-primary fw-bold text-uppercase ls-wide">Questions?</h6>
+                    <h2 className="section-title fw-bold">Frequently Asked <span className="text-gradient">Questions</span></h2>
+                    <p className="text-muted mx-auto" style={{ maxWidth: '600px' }}>
+                        Everything you need to know about the product and how it works.
+                    </p>
+                </div>
+                <div className="row justify-content-center">
+                    <div className="col-lg-8">
+                        <div className="d-flex flex-column gap-3">
+                            {[
+                                {
+                                    q: "How does the dynamic pricing model work?",
+                                    a: "Instead of a flat monthly fee, our system calculates costs based on real-time consumption and attendance. If you cancel a meal in advance, you aren't charged for it, saving students money and drastically reducing food waste."
+                                },
+                                {
+                                    q: "How does the system handle guest meals and extra items?",
+                                    a: "SmartMess seamlessly tracks guest meals and extra food items. Butlers can instantly log these additions via their interface, and the exact charges are immediately updated in the student's transparent ledger."
+                                },
+                                {
+                                    q: "How secure is the billing and ledger data?",
+                                    a: "SmartMess employs strict role-based access control (RBAC). Butlers can only log attendance, while admins oversee operations. All transactions are securely recorded in an immutable ledger, ensuring 100% transparency for everyone."
+                                },
+                                {
+                                    q: "Do I need special hardware to mark attendance?",
+                                    a: "No! Our system works flawlessly on any modern smartphone, tablet, or PC. Butlers can instantly verify students using their ID or via a quick search on the dedicated staff interface."
+                                },
+                                {
+                                    q: "How are students informed about menu changes or announcements?",
+                                    a: "Admins can use the Smart Notices feature to instantly broadcast daily menus, special event meals, or important announcements. This ensures everyone is updated in real-time through their personalized dashboard."
+                                }
+                            ].map((faq, index) => (
+                                <div key={index} className="glass-card rounded-4 overflow-hidden slide-up transition-all" style={{ animationDelay: `${0.1 * (index + 1)}s` }}>
+                                    <button
+                                        className="w-100 text-start bg-transparent border-0 p-4 d-flex justify-content-between align-items-center fw-bold text-dark"
+                                        onClick={() => toggleFaq(index)}
+                                        style={{ outline: 'none', cursor: 'pointer' }}
+                                    >
+                                        <span className="fs-5 pe-4">{faq.q}</span>
+                                        <div className="icon-circle shadow-sm flex-shrink-0 transition-all" style={{ width: '36px', height: '36px', background: activeFaq === index ? 'var(--brand-gradient)' : 'rgba(255,255,255,0.8)', color: activeFaq === index ? 'white' : 'var(--text-muted)' }}>
+                                            <i className="bi bi-chevron-down" style={{ transform: activeFaq === index ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s ease' }}></i>
+                                        </div>
+                                    </button>
+                                    <div
+                                        className="px-4"
+                                        style={{
+                                            maxHeight: activeFaq === index ? '200px' : '0',
+                                            opacity: activeFaq === index ? 1 : 0,
+                                            overflow: 'hidden',
+                                            transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            paddingBottom: activeFaq === index ? '1.5rem' : '0'
+                                        }}
+                                    >
+                                        <p className="text-muted mb-0 lh-lg pe-lg-5">{faq.a}</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* CTA SECTION */}
-            <section className="cta-section container py-5 my-5 text-center slide-up">
+            <section className="cta-section container py-5 mt-3 mb-5 text-center slide-up">
                 <div className="glass-panel p-5 rounded-5 overflow-hidden position-relative">
                     <div className="cta-bg-glow"></div>
                     <h2 className="fw-bold mb-3 display-5">Ready to revolutionize your mess?</h2>
@@ -451,54 +520,54 @@ const LandingPage = () => {
             </section>
 
             {/* FOOTER */}
-            <footer className="footer-section py-5 mt-5 border-top">
-                <div className="container">
+            <footer className="footer-section py-5 mt-5 position-relative overflow-hidden" style={{ backgroundColor: 'var(--bg-soft)' }}>
+                <div className="cta-bg-glow" style={{ opacity: 0.1, left: '-5%', top: '80%' }}></div>
+                <div className="cta-bg-glow" style={{ opacity: 0.1, left: '105%', top: '20%', background: 'var(--brand-secondary)' }}></div>
+                <div className="container position-relative z-1">
                     <div className="row g-4 justify-content-between">
-                        <div className="col-lg-4">
+                        <div className="col-lg-4 slide-up">
                             <div className="logo d-flex align-items-center mb-4">
-                                <div className="logo-icon me-2">
+                                <div className="logo-icon me-2 shadow-sm">
                                     <i className="bi bi-hexagon-fill"></i>
                                 </div>
                                 <span className="logo-text">SmartMess</span>
                             </div>
-                            <p className="text-muted small">
+                            <p className="text-muted small pe-lg-4 lh-lg">
                                 The ultimate mess management solution designed for the modern educational ecosystem. Built with ❤️ for transparency and efficiency.
                             </p>
                             <div className="social-links d-flex gap-3 mt-4">
-                                <a href="https://x.com/aryan02006" target="_blank" rel="noopener noreferrer" className="text-muted fs-5"><i className="bi bi-twitter-x"></i></a>
-                                <a href="https://github.com/Aryan02006" target="_blank" rel="noopener noreferrer" className="text-muted fs-5"><i className="bi bi-github"></i></a>
-                                <a href="https://www.linkedin.com/in/aryan-pandey084/" target="_blank" rel="noopener noreferrer" className="text-muted fs-5"><i className="bi bi-linkedin"></i></a>
+                                <a href="https://x.com/aryan02006" target="_blank" rel="noopener noreferrer" className="social-btn"><i className="bi bi-twitter-x"></i></a>
+                                <a href="https://github.com/Aryan02006" target="_blank" rel="noopener noreferrer" className="social-btn"><i className="bi bi-github"></i></a>
+                                <a href="https://www.linkedin.com/in/aryan-pandey084/" target="_blank" rel="noopener noreferrer" className="social-btn"><i className="bi bi-linkedin"></i></a>
                             </div>
                         </div>
-                        <div className="col-lg-2 col-6">
-                            <h6 className="fw-bold mb-4">Product</h6>
+                        <div className="col-lg-2 col-6 slide-up" style={{ animationDelay: '0.1s' }}>
+                            <h6 className="fw-bold mb-4 text-dark">Product</h6>
                             <ul className="list-unstyled text-muted small d-flex flex-column gap-2">
-                                <li><a href="#features">Features</a></li>
-                                <li><a href="#roles">Workflows</a></li>
-                                <li><a>Pricing</a></li>
-                                <li><a>Updates</a></li>
+                                <li><a href="#features" className="text-muted text-decoration-none text-hover-primary d-inline-flex align-items-center"><i className="bi bi-arrow-right-short me-1 fs-5"></i>Features</a></li>
+                                <li><a href="#roles" className="text-muted text-decoration-none text-hover-primary d-inline-flex align-items-center"><i className="bi bi-arrow-right-short me-1 fs-5"></i>Solutions</a></li>
+                                <li><a href="#faq" className="text-muted text-decoration-none text-hover-primary d-inline-flex align-items-center"><i className="bi bi-arrow-right-short me-1 fs-5"></i>FAQ</a></li>
+                                <li><Link to="/login" className="text-muted text-decoration-none text-hover-primary d-inline-flex align-items-center"><i className="bi bi-arrow-right-short me-1 fs-5"></i>Updates <span className="badge bg-primary-soft text-primary ms-2 rounded-pill">New</span></Link></li>
                             </ul>
                         </div>
-                        <div className="col-lg-2 col-6">
-                            <h6 className="fw-bold mb-4">Company</h6>
+                        <div className="col-lg-2 col-6 slide-up" style={{ animationDelay: '0.2s' }}>
+                            <h6 className="fw-bold mb-4 text-dark">Company</h6>
                             <ul className="list-unstyled text-muted small d-flex flex-column gap-2">
-                                <li><a href="#about" className="text-muted text-decoration-none">About Us</a></li>
-                                <li><a href="#contact" className="text-muted text-decoration-none">Contact</a></li>
-                                <li><a>Privacy Policy</a></li>
-                                <li><a>Terms of Service</a></li>
+                                <li><a href="#about" className="text-muted text-decoration-none text-hover-primary d-inline-flex align-items-center"><i className="bi bi-arrow-right-short me-1 fs-5"></i>About Us</a></li>
+                                <li><a href="#contact" className="text-muted text-decoration-none text-hover-primary d-inline-flex align-items-center"><i className="bi bi-arrow-right-short me-1 fs-5"></i>Contact</a></li>
                             </ul>
                         </div>
-                        <div className="col-lg-3">
-                            <h6 className="fw-bold mb-4">Subscribe to our newsletter</h6>
-                            <div className="input-group mb-3 rounded-pill overflow-hidden border">
-                                <input type="text" className="form-control border-0 px-3" placeholder="email@example.com" />
-                                <button className="btn btn-dark px-3" type="button"><i className="bi bi-send"></i></button>
+                        <div className="col-lg-3 slide-up" style={{ animationDelay: '0.3s' }}>
+                            <h6 className="fw-bold mb-4 text-dark">Subscribe to our newsletter</h6>
+                            <div className="input-group mb-3 glass-card rounded-pill overflow-hidden p-1 shadow-sm border-0 bg-white">
+                                <input type="text" className="form-control border-0 bg-transparent px-3 shadow-none" placeholder="email@example.com" />
+                                <button className="btn btn-gradient rounded-pill px-4 shadow-sm" type="button"><i className="bi bi-send-fill"></i></button>
                             </div>
-                            <p className="smaller text-muted">Get the latest updates and feature releases.</p>
+                            <p className="smaller text-muted">Get the latest updates and feature releases delivered straight to your inbox.</p>
                         </div>
                     </div>
                     <div className="text-center mt-5 pt-4 border-top">
-                        <p className="text-muted smaller mb-0">© 2026 SmartMess Management System. All rights reserved.</p>
+                        <p className="text-muted smaller mb-0 fw-medium">© 2026 SmartMess Management System. All rights reserved.</p>
                     </div>
                 </div>
             </footer>
