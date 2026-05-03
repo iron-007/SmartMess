@@ -8,16 +8,16 @@ const LandingPage = () => {
     const handleContactSubmit = async (e) => {
         e.preventDefault();
         setFormStatus('submitting');
-        
+
         const form = e.target;
         const formData = new FormData(form);
-        
+
         try {
             const response = await fetch("https://formsubmit.co/ajax/aryan.pandey01x@gmail.com", {
                 method: "POST",
                 body: formData,
             });
-            
+
             if (response.ok) {
                 setFormStatus('success');
                 form.reset();
@@ -265,9 +265,9 @@ const LandingPage = () => {
                             img: "/anand_pic.jpeg",
                             coverBg: "linear-gradient(135deg, #4A00E0 0%, #8E2DE2 100%)",
                             socials: {
-                                twitter: "https://x.com/anandraj",
-                                github: "https://github.com/anandraj",
-                                linkedin: "https://www.linkedin.com/in/anandraj/"
+                                twitter: "https://x.com/raj_anand89067",
+                                github: "https://github.com/iron-007",
+                                linkedin: "https://www.linkedin.com/in/anand-raj-50888a291"
                             }
                         },
                         {
@@ -286,12 +286,12 @@ const LandingPage = () => {
                             name: "Samar Shivam",
                             role: "Frontend Developer",
                             intro: "Breathing life into code with stunning visuals and buttery-smooth interactions. Dedicated to crafting an intuitive, modern, and engaging user interface that users love at first sight.",
-                            img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
+                            img: "/samar_pic.png",
                             coverBg: "linear-gradient(135deg, #11998e 0%, #38ef7d 100%)",
                             socials: {
-                                twitter: "https://x.com/samarshivam",
-                                github: "https://github.com/samarshivam",
-                                linkedin: "https://www.linkedin.com/in/samarshivam/"
+                                twitter: "https://x.com/samar78088",
+                                github: "https://github.com/samar62023",
+                                linkedin: "https://www.linkedin.com/in/samar-shivam62023/"
                             }
                         }
                     ].map((person, i) => (
@@ -388,9 +388,9 @@ const LandingPage = () => {
                             </div>
 
                             <div className="social-links d-flex gap-3 mt-auto">
-                                <a href="#" className="social-btn"><i className="bi bi-twitter-x"></i></a>
-                                <a href="#" className="social-btn"><i className="bi bi-github"></i></a>
-                                <a href="#" className="social-btn"><i className="bi bi-linkedin"></i></a>
+                                <a href="https://x.com/raj_anand89067" target="_blank" rel="noopener noreferrer" className="social-btn"><i className="bi bi-twitter-x"></i></a>
+                                <a href="https://github.com/Aryan02006" target="_blank" rel="noopener noreferrer" className="social-btn"><i className="bi bi-github"></i></a>
+                                <a href="https://www.linkedin.com/in/anand-raj-50888a291" target="_blank" rel="noopener noreferrer" className="social-btn"><i className="bi bi-linkedin"></i></a>
                             </div>
                         </div>
                     </div>
@@ -398,14 +398,14 @@ const LandingPage = () => {
                     <div className="col-lg-5 slide-up" style={{ animationDelay: '0.4s' }}>
                         <div className="glass-card p-5 rounded-5 h-100 d-flex flex-column justify-content-center w-100">
                             <h3 className="fw-bold mb-4">Send us a Message</h3>
-                            
+
                             {formStatus === 'success' && (
                                 <div className="alert alert-success d-flex align-items-center py-2 mb-4 slide-up" role="alert">
                                     <i className="bi bi-check-circle-fill me-2 fs-5"></i>
                                     <div>Message sent successfully! We'll be in touch.</div>
                                 </div>
                             )}
-                            
+
                             {formStatus === 'error' && (
                                 <div className="alert alert-danger d-flex align-items-center py-2 mb-4 slide-up" role="alert">
                                     <i className="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
@@ -465,9 +465,9 @@ const LandingPage = () => {
                                 The ultimate mess management solution designed for the modern educational ecosystem. Built with ❤️ for transparency and efficiency.
                             </p>
                             <div className="social-links d-flex gap-3 mt-4">
-                                <a href="#" className="text-muted fs-5"><i className="bi bi-twitter-x"></i></a>
-                                <a href="#" className="text-muted fs-5"><i className="bi bi-github"></i></a>
-                                <a href="#" className="text-muted fs-5"><i className="bi bi-linkedin"></i></a>
+                                <a href="https://x.com/aryan02006" target="_blank" rel="noopener noreferrer" className="text-muted fs-5"><i className="bi bi-twitter-x"></i></a>
+                                <a href="https://github.com/Aryan02006" target="_blank" rel="noopener noreferrer" className="text-muted fs-5"><i className="bi bi-github"></i></a>
+                                <a href="https://www.linkedin.com/in/aryan-pandey084/" target="_blank" rel="noopener noreferrer" className="text-muted fs-5"><i className="bi bi-linkedin"></i></a>
                             </div>
                         </div>
                         <div className="col-lg-2 col-6">
