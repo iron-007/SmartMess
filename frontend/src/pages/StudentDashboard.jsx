@@ -19,6 +19,9 @@ const StudentDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const location = useLocation();
+  const currentPath = location.pathname;
 
   const fetchData = useCallback(async () => {
     try {
@@ -68,9 +71,6 @@ const StudentDashboard = () => {
       {error}
     </div>
   );
-
-  const location = useLocation();
-  const currentPath = location.pathname;
 
   const getTitle = () => {
     if (currentPath.includes('/menu')) return "Mess Menu";

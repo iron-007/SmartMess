@@ -1,63 +1,64 @@
 import React from 'react';
 
 const DuesSection = ({ dues }) => {
-
   return (
-    <div className="glass-panel shadow-md border-0 mb-4 h-100 overflow-hidden fade-in">
-      <div className="card-header border-0 p-4 pb-0 bg-transparent">
-        <h5 className="mb-0 fw-bold text-gradient"><i className="bi bi-receipt me-2"></i>Current Month Bill</h5>
+    <div className="glass-panel shadow-sm border-0 mb-3 h-100 bg-white" style={{ borderRadius: '12px' }}>
+      <div className="card-header border-bottom bg-transparent p-3">
+        <h6 className="mb-0 fw-bold text-dark"><i className="bi bi-receipt me-2 text-primary"></i>Current Month Bill</h6>
       </div>
-      <div className="card-body p-4 pt-3">
-        <div className="bill-items mb-4 p-3 rounded-4 bg-light bg-opacity-50 border border-light">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <span className="small text-muted fw-medium"><i className="bi bi-cup-hot me-2 text-primary opacity-75"></i>Daily Mess Bill</span>
-            <span className="fw-bold text-dark">₹{dues.dailyMealsTotal?.toLocaleString()}</span>
+      <div className="card-body p-3">
+        <div className="bg-light p-3 rounded-3 border">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="text-muted fw-medium" style={{ fontSize: '0.85rem' }}>Daily Mess Bill</span>
+            <span className="fw-bold text-dark fs-6">₹{dues.dailyMealsTotal?.toLocaleString()}</span>
           </div>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <span className="small text-muted fw-medium"><i className="bi bi-plus-circle me-2 text-warning opacity-75"></i>Extra Items</span>
-            <span className="fw-bold text-dark">₹{dues.extraTotal?.toLocaleString()}</span>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="text-muted fw-medium" style={{ fontSize: '0.85rem' }}>Extra Items</span>
+            <span className="fw-bold text-dark fs-6">₹{dues.extraTotal?.toLocaleString()}</span>
           </div>
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <span className="small text-muted fw-medium"><i className="bi bi-people me-2 text-info opacity-75"></i>Guest Meals</span>
-            <span className="fw-bold text-dark">₹{dues.guestTotal?.toLocaleString()}</span>
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="text-muted fw-medium" style={{ fontSize: '0.85rem' }}>Guest Meals</span>
+            <span className="fw-bold text-dark fs-6">₹{dues.guestTotal?.toLocaleString()}</span>
           </div>
           {dues.fineTotal > 0 && (
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <span className="small text-muted fw-medium"><i className="bi bi-exclamation-triangle me-2 text-danger opacity-75"></i>System Fines</span>
-              <span className="fw-bold text-danger">+₹{dues.fineTotal?.toLocaleString()}</span>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span className="text-danger fw-medium" style={{ fontSize: '0.85rem' }}>System Fines</span>
+              <span className="fw-bold text-danger fs-6">+₹{dues.fineTotal?.toLocaleString()}</span>
             </div>
           )}
+          {(dues.paymentsTotal > 0 || dues.rebateTotal > 0) && <hr className="my-2 border-secondary opacity-25" />}
           {dues.paymentsTotal > 0 && (
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <span className="small text-success fw-bold"><i className="bi bi-check-circle-fill me-2"></i>Payments Made</span>
-              <span className="fw-bold text-success bg-success bg-opacity-10 px-2 py-1 rounded">-₹{dues.paymentsTotal?.toLocaleString()}</span>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span className="text-success fw-medium" style={{ fontSize: '0.85rem' }}>Payments Made</span>
+              <span className="fw-bold text-success fs-6">-₹{dues.paymentsTotal?.toLocaleString()}</span>
             </div>
           )}
           {dues.rebateTotal > 0 && (
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <span className="small text-success fw-bold"><i className="bi bi-tag-fill me-2"></i>Manual Rebates</span>
-              <span className="fw-bold text-success bg-success bg-opacity-10 px-2 py-1 rounded">-₹{dues.rebateTotal?.toLocaleString()}</span>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <span className="text-success fw-medium" style={{ fontSize: '0.85rem' }}>Manual Rebates</span>
+              <span className="fw-bold text-success fs-6">-₹{dues.rebateTotal?.toLocaleString()}</span>
             </div>
           )}
           
-          <hr className="my-3 border-secondary opacity-25" />
+          <hr className="my-2 border-secondary opacity-25" />
           
-          <div className="d-flex justify-content-between align-items-center mb-2">
-            <span className="small text-dark fw-bold">Current Month Bill</span>
-            <span className="fw-bold text-primary">₹{dues.currentMonthTotal?.toLocaleString()}</span>
-          </div>
           <div className="d-flex justify-content-between align-items-center mb-1">
-            <span className="small text-danger fw-bold">Previous Dues</span>
-            <span className="fw-bold text-danger">+ ₹{dues.previousDues?.toLocaleString()}</span>
+            <span className="text-dark fw-bold" style={{ fontSize: '0.85rem' }}>Current Month Total</span>
+            <span className="fw-bold text-primary fs-6">₹{dues.currentMonthTotal?.toLocaleString()}</span>
           </div>
+          {dues.previousDues > 0 && (
+            <div className="d-flex justify-content-between align-items-center mt-2">
+              <span className="text-danger fw-bold" style={{ fontSize: '0.85rem' }}>Previous Dues</span>
+              <span className="fw-bold text-danger fs-6">+ ₹{dues.previousDues?.toLocaleString()}</span>
+            </div>
+          )}
         </div>
 
-        <div className="pt-3 border-top border-2 d-flex justify-content-between align-items-center">
+        <div className="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
           <div>
-            <h5 className="mb-0 fw-bold text-dark">Total Payable</h5>
-            <small className="text-muted" style={{ fontSize: '0.7rem' }}><i className="bi bi-info-circle me-1"></i>Includes all charges & rebates</small>
+            <span className="fw-bold text-dark d-block" style={{ fontSize: '0.9rem' }}>Total Payable</span>
           </div>
-          <h2 className="mb-0 fw-bold text-gradient">₹{dues.totalPayable?.toLocaleString()}</h2>
+          <h4 className="mb-0 fw-bold text-primary">₹{dues.totalPayable?.toLocaleString()}</h4>
         </div>
       </div>
     </div>

@@ -339,7 +339,7 @@ exports.markAttendance = async (req, res) => {
 // @access  Butler/Admin
 exports.getButlerStudents = async (req, res) => {
   try {
-    const students = await User.find({ role: 'student' }).select('name messAccount messStatus');
+    const students = await User.find({ role: 'student' }).select('name messAccount messStatus lastRequestDate');
     res.status(200).json(students);
   } catch (error) {
     res.status(500).json({ message: "Error fetching students", error: error.message });

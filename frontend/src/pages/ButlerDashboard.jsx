@@ -1,9 +1,7 @@
 import React from 'react';
-import LiveAttendance from '../components/butler/LiveAttendance';
-import MonthlyAttendance from '../components/butler/MonthlyAttendance';
 import BillOverview from '../components/butler/BillOverview';
 import MonthlyBreakdown from '../components/butler/MonthlyBreakdown';
-import AttendanceMarker from '../components/butler/AttendanceMarker';
+import ClosedAccountsList from '../components/butler/ClosedAccountsList';
 
 const ButlerDashboard = () => {
   return (
@@ -16,23 +14,12 @@ const ButlerDashboard = () => {
         <div className="badge bg-primary px-3 py-2">Butler Role</div>
       </div>
 
-      <LiveAttendance />
-
       <div className="row g-4">
-        <div className="col-lg-8">
+        <div className="col-lg-12">
           <MonthlyBreakdown />
-          <MonthlyAttendance />
         </div>
-        <div className="col-lg-4">
-          <AttendanceMarker />
-          <div className="card border-0 shadow-sm mt-4 bg-primary text-white">
-            <div className="card-body p-4">
-              <h5 className="fw-bold"><i className="bi bi-lightbulb me-2"></i>Operational Tip</h5>
-              <p className="mb-0 small opacity-75">
-                Attendance is tracked in real-time. Please ensure you log guest meals as they arrive to maintain accurate billing and inventory status.
-              </p>
-            </div>
-          </div>
+        <div className="col-lg-12">
+          <ClosedAccountsList />
         </div>
         <div className="col-12">
            <BillOverview />

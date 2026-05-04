@@ -3,6 +3,8 @@ import api from "../utils/api";
 
 const NoticeBoard = () => {
   const [notices, setNotices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");

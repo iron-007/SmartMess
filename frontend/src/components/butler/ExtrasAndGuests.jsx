@@ -17,6 +17,10 @@ const ExtrasAndGuests = () => {
     mealType: 'Lunch'
   });
 
+  // Search State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+
   // History State
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -119,6 +123,7 @@ const ExtrasAndGuests = () => {
         extras: [{ item: '', quantity: 1 }],
         guestMeals: 0
       }));
+      setSearchTerm('');
       fetchHistory(); // Refresh history table
     } catch (err) {
       setMessage({ type: 'danger', text: err.response?.data?.message || 'Failed to log consumption' });
@@ -158,9 +163,9 @@ const ExtrasAndGuests = () => {
   const groupedArray = Object.values(groupedHistory);
 
   return (
-    <div className="row g-4 flex-column">
-      {/* TOP: Entry Form */}
-      <div className="col-12">
+    <div className="row g-4">
+      {/* LEFT: Entry Form */}
+      <div className="col-lg-5">
         <div className="card border-0 shadow-sm rounded-4 h-100">
           <div className="card-header bg-primary text-white p-3 border-0">
             <h5 className="mb-0 fw-bold"><i className="bi bi-plus-circle me-2"></i>New Entry</h5>
@@ -169,19 +174,47 @@ const ExtrasAndGuests = () => {
             {message && <div className={`alert alert-${message.type} py-2 small`}>{message.text}</div>}
 
             <form onSubmit={handleSubmit}>
-              <div className="mb-4">
+              <div className="mb-4 position-relative">
                 <label className="form-label small fw-bold text-muted">Student</label>
-                <select 
-                  className="form-select bg-light border-0 py-2" 
-                  value={formData.studentId}
-                  onChange={(e) => setFormData({...formData, studentId: e.target.value})}
-                  required
-                >
-                  <option value="">Select student...</option>
-                  {students.map(s => (
-                    <option key={s._id} value={s._id}>{s.name} ({s.messAccount})</option>
-                  ))}
-                </select>
+                <input 
+                  type="text"
+                  className="form-control bg-light border-0 py-2"
+                  placeholder="Search by Mess Account or Name..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setShowDropdown(true);
+                    if (formData.studentId) setFormData({...formData, studentId: ''});
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  onBlur={() => setShowDropdown(false)}
+                  required={!formData.studentId}
+                />
+                
+                {showDropdown && searchTerm && (
+                  <ul className="list-group position-absolute w-100 shadow-sm" style={{ zIndex: 1000, maxHeight: '200px', overflowY: 'auto', marginTop: '4px' }}>
+                    {students
+                      .filter(s => (s.messAccount && s.messAccount.toLowerCase().includes(searchTerm.toLowerCase())) || (s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase())))
+                      .map(s => (
+                        <li 
+                          key={s._id} 
+                          className="list-group-item list-group-item-action border-0 border-bottom"
+                          style={{ cursor: 'pointer' }}
+                          onMouseDown={() => {
+                            setFormData({...formData, studentId: s._id});
+                            setSearchTerm(`${s.name} (${s.messAccount})`);
+                            setShowDropdown(false);
+                          }}
+                        >
+                          <div className="fw-bold text-dark">{s.name}</div>
+                          <div className="small text-muted">{s.messAccount}</div>
+                        </li>
+                    ))}
+                    {students.filter(s => (s.messAccount && s.messAccount.toLowerCase().includes(searchTerm.toLowerCase())) || (s.name && s.name.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 && (
+                      <li className="list-group-item text-muted small border-0">No students found</li>
+                    )}
+                  </ul>
+                )}
               </div>
 
               <div className="mb-4">
@@ -212,7 +245,7 @@ const ExtrasAndGuests = () => {
                   <div key={index} className="row g-2 mb-2 align-items-end">
                     <div className="col-7">
                       <select 
-                        className="form-select form-select-sm bg-light border-0" 
+                        className="form-select form-select-sm bg-light border-0 py-2" 
                         value={extra.item}
                         onChange={(e) => handleExtraChange(index, 'item', e.target.value)}
                       >
@@ -225,7 +258,7 @@ const ExtrasAndGuests = () => {
                     <div className="col-4">
                       <input 
                         type="number" 
-                        className="form-control form-control-sm bg-light border-0" 
+                        className="form-control form-control-sm bg-light border-0 py-2" 
                         placeholder="Qty"
                         value={extra.quantity}
                         onChange={(e) => handleExtraChange(index, 'quantity', e.target.value)}
@@ -233,7 +266,7 @@ const ExtrasAndGuests = () => {
                       />
                     </div>
                     <div className="col-1 text-end">
-                      <button type="button" className="btn btn-sm btn-outline-danger border-0 p-1" onClick={() => removeExtraRow(index)}>
+                      <button type="button" className="btn btn-sm btn-outline-danger border-0 py-2 px-3 rounded-3" onClick={() => removeExtraRow(index)}>
                         <i className="bi bi-trash"></i>
                       </button>
                     </div>
@@ -244,10 +277,10 @@ const ExtrasAndGuests = () => {
               <div className="mb-4">
                 <label className="form-label small fw-bold text-muted">Guest Meals</label>
                 <div className="input-group">
-                  <span className="input-group-text bg-light border-0"><i className="bi bi-people"></i></span>
+                  <span className="input-group-text bg-light border-0 px-3"><i className="bi bi-people"></i></span>
                   <input 
                     type="number" 
-                    className="form-control bg-light border-0" 
+                    className="form-control bg-light border-0 py-2" 
                     value={formData.guestMeals}
                     onChange={(e) => setFormData({...formData, guestMeals: parseInt(e.target.value) || 0})}
                     min="0"
@@ -255,7 +288,7 @@ const ExtrasAndGuests = () => {
                 </div>
               </div>
 
-              <button type="submit" className="btn btn-primary w-100 py-2 fw-bold rounded-3 shadow-sm" disabled={loading}>
+              <button type="submit" className="btn btn-primary w-100 py-3 fw-bold rounded-3 shadow-sm mt-2" disabled={loading}>
                 {loading ? 'Logging...' : 'Confirm Entry'}
               </button>
             </form>
@@ -263,9 +296,9 @@ const ExtrasAndGuests = () => {
         </div>
       </div>
 
-      {/* BOTTOM: History Table */}
-      <div className="col-12">
-        <div className="card border-0 shadow-sm rounded-4">
+      {/* RIGHT: History Table */}
+      <div className="col-lg-7">
+        <div className="card border-0 shadow-sm rounded-4 h-100">
           <div className="card-header bg-white p-3 border-bottom d-flex justify-content-between align-items-center">
             <h5 className="mb-0 fw-bold text-dark"><i className="bi bi-clock-history me-2 text-primary"></i>Daily Log</h5>
             <div className="d-flex gap-2">

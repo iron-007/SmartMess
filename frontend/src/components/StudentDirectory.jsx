@@ -61,8 +61,10 @@ const StudentDirectory = () => {
     if (searchQuery.trim() === '') {
       setFilteredStudents(students);
     } else {
+      const query = searchQuery.toLowerCase();
       const results = students.filter(student =>
-        student.messAccount.includes(searchQuery)
+        (student.messAccount && student.messAccount.toString().toLowerCase().includes(query)) ||
+        (student.name && student.name.toLowerCase().includes(query))
       );
       setFilteredStudents(results);
     }
@@ -230,9 +232,9 @@ const StudentDirectory = () => {
                   <i className="bi bi-search"></i>
                 </span>
                 <input
-                  type="number"
+                  type="text"
                   className="form-control border-0 modern-input bg-white fs-6"
-                  placeholder="Search by Mess Account Number..."
+                  placeholder="Search by Name or Account Number..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />

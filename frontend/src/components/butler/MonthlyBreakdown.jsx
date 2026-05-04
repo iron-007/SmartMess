@@ -18,22 +18,24 @@ const MonthlyBreakdown = () => {
   const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 2 + i);
 
   useEffect(() => {
-    fetchStats();
-  }, [selectedMonth, selectedYear]);
-
-  const fetchStats = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/api/butler/status-stats?month=${selectedMonth}&year=${selectedYear}`);
-      if (response.data.success) {
-        setData(response.data.stats);
+    let isMounted = true;
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const response = await api.get(`/api/butler/status-stats?month=${selectedMonth}&year=${selectedYear}`);
+        if (response.data.success && isMounted) {
+          setData(response.data.stats);
+        }
+      } catch (err) {
+        console.error("Error fetching graph data:", err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching graph data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchStats();
+    return () => { isMounted = false; };
+  }, [selectedMonth, selectedYear]);
 
   return (
     <div className="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
@@ -43,20 +45,21 @@ const MonthlyBreakdown = () => {
             <h5 className="fw-bold text-dark mb-0">Monthly Status Breakdown</h5>
             <p className="text-muted small mb-0">Viewing participation trends for {months.find(m => m.value === selectedMonth)?.label} {selectedYear}</p>
           </div>
-          
+
           <div className="d-flex gap-2">
-            <select 
+            <select
               className="form-select form-select-sm border-0 bg-light rounded-pill px-3 fw-bold text-dark"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              style={{ minWidth: '130px' }}
+              style={{ width: '120px' }}
             >
               {months.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
             </select>
-            <select 
+            <select
               className="form-select form-select-sm border-0 bg-light rounded-pill px-3 fw-bold text-dark"
               value={selectedYear}
               onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+              style={{ width: '140px' }}
             >
               {years.map(y => <option key={y} value={y}>{y}</option>)}
             </select>
@@ -87,48 +90,48 @@ const MonthlyBreakdown = () => {
               <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorActive" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="colorInactive" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15}/>
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.15} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false} 
-                  tickLine={false} 
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fontSize: 10, fill: '#9ca3af' }}
                   interval={Math.floor(data.length / 7)}
                 />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
                   tick={{ fontSize: 10, fill: '#9ca3af' }}
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', fontSize: '12px' }}
                 />
-                <Area 
-                  type="natural" 
-                  dataKey="active" 
-                  stroke="#10b981" 
+                <Area
+                  type="natural"
+                  dataKey="active"
+                  stroke="#10b981"
                   strokeWidth={4}
-                  fillOpacity={1} 
-                  fill="url(#colorActive)" 
+                  fillOpacity={1}
+                  fill="url(#colorActive)"
                   name="Active"
                   animationDuration={1500}
                   activeDot={{ r: 6, strokeWidth: 0 }}
                 />
-                <Area 
-                  type="natural" 
-                  dataKey="inactive" 
-                  stroke="#ef4444" 
+                <Area
+                  type="natural"
+                  dataKey="inactive"
+                  stroke="#ef4444"
                   strokeWidth={4}
-                  fillOpacity={1} 
-                  fill="url(#colorInactive)" 
+                  fillOpacity={1}
+                  fill="url(#colorInactive)"
                   name="Inactive"
                   animationDuration={1500}
                   activeDot={{ r: 6, strokeWidth: 0 }}
